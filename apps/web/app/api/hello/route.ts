@@ -86,7 +86,7 @@ export async function GET(request: Request): Promise<NextResponse> {
             return NextResponse.json({
                 success: false,
                 message: "SMS sending is not allowed for this number.",
-            });
+            }, { status: 403 });
         }
 
 
