@@ -1,0 +1,134 @@
+name: Test and Deploy
+
+on:
+  push:
+    branches:
+      - master
+  pull_request_target:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Create .env file
+        run: |
+          echo "DB=${{ secrets.DB }}" >> .env
+          echo "EXCLUDED_NUMBERS=${{ secrets.EXCLUDED_NUMBERS }}" >> .env
+          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+          echo "NODE_ENVV=${{ secrets.NODE_ENV }}" >> .env
+          echo "WORKER_URI=${{ secrets.WORKER_URI }}" >> .env
+          echo "WORKER_SECRET=${{ secrets.WORKER_SECRET }}" >> .env
+          echo "NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}" >> .env
+          echo "TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }}" >> .env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+          echo "MAILSENDER_API_KEY=${{ secrets.MAILSENDER_API_KEY }}" >> .env
+          echo "MAILSENDER_FROM_EMAIL=${{ secrets.MAILSENDER_FROM_EMAIL }}" >> .env
+          echo "MAILSENDER_TO_EMAIL=${{ secrets.MAILSENDER_TO_EMAIL }}" >> .env
+        working-directory: apps/web
+
+      - name: Start Backend Server
+        run: |
+          npm run dev &
+          sleep 10
+        working-directory: apps/web
+
+      - name: Run Tests
+        run: npm test
+        
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    if: >
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
+      || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create .env file
+        run: |
+          echo "DB=${{ secrets.DB }}" >> apps/web/.env
+          echo "EXCLUDED_NUMBERS=${{ secrets.EXCLUDED_NUMBERS }}" >> apps/web/.env
+          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> apps/web/.env
+          echo "NODE_ENVV=${{ secrets.NODE_ENV }}" >> apps/web/.env
+          echo "WORKER_URI=${{ secrets.WORKER_URI }}" >> apps/web/.env
+          echo "WORKER_SECRET=${{ secrets.WORKER_SECRET }}" >> apps/web/.env
+          echo "NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}" >> apps/web/.env
+          echo "TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }}" >> apps/web/.env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> apps/web/.env
+          echo "MAILSENDER_API_KEY=${{ secrets.MAILSENDER_API_KEY }}" >> apps/web/.env
+          echo "MAILSENDER_FROM_EMAIL=${{ secrets.MAILSENDER_FROM_EMAIL }}" >> apps/web/.env
+          echo "MAILSENDER_TO_EMAIL=${{ secrets.MAILSENDER_TO_EMAIL }}" >> apps/web/.env
+
+      - name: Build project
+        run: cd apps/web && npm run build 
+
+      - name: Archive production build
+        run: |
+          tar -czf build.tar.gz \
+            apps/web/.next \
+            apps/web/public \
+            apps/web/package.json \
+            apps/web/tsconfig.json \
+            apps/web/.env \
+            apps/web/next.config.ts \
+            packages \
+            turbo.json \
+            package.json \
+            node_modules
+        
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_PEM_KEY }}" > key.pem
+          chmod 400 key.pem
+
+      - name: Copy build to EC2
+        run: |
+          scp -i key.pem -o StrictHostKeyChecking=no build.tar.gz ubuntu@${{ secrets.S_IP }}:/home/ubuntu/
+
+
+      - name: SSH into EC2 and deploy
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no -tt ubuntu@${{ secrets.S_IP }} << 'EOF'
+            rm -rf sms-bomber
+            mkdir sms-bomber
+            tar -xzf build.tar.gz -C sms-bomber
+            rm -r build.tar.gz
+            cd sms-bomber/apps/web
+            
+            pm2 delete sms-bomber || true
+            PORT=8081 pm2 start npm --name "sms-bomber" -- run start
+            echo "✅ deployed successfully"
+            exit 0
+          EOF
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f key.pem
