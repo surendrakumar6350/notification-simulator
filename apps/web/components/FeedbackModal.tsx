@@ -32,7 +32,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onSubmit
           className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 
         rounded-full transition-all duration-200 backdrop-blur-sm"
         >
-          <X className="w-5 h-5 text-white" />
+          <X className="w-5 h-5 text-gray-800 dark:text-white" />
         </button>
 
         {/* Feedback Form */}

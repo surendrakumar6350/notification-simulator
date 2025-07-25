@@ -63,12 +63,9 @@ const MobileProtectionForm: React.FC<MobileProtectionFormProps> = ({ onSubmitReq
 
             {/* Info Notice */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-                <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="flex items-center gap-3">
+                    <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                     <div className="text-sm">
-                        <p className="text-blue-800 dark:text-blue-200 font-medium mb-1">
-                            Instant Email Notification
-                        </p>
                         <p className="text-blue-700 dark:text-blue-300">
                             An instant email will be sent to our team for review. If your request is genuine,
                             your number will be added to the protection list immediately.
@@ -76,6 +73,7 @@ const MobileProtectionForm: React.FC<MobileProtectionFormProps> = ({ onSubmitReq
                     </div>
                 </div>
             </div>
+
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Mobile Number */}
