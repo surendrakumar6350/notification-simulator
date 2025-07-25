@@ -25,7 +25,7 @@ const MobileProtectionModal: React.FC<MobileProtectionModalProps> = ({
         screenshot?: File | null;
     }) => {
         onSubmitRequest(request);
-        onClose(); // Close modal after submission
+        onClose();
     };
 
     return (

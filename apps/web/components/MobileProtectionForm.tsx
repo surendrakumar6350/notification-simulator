@@ -57,12 +57,8 @@ const MobileProtectionForm: React.FC<MobileProtectionFormProps> = ({ onSubmitReq
                     <Shield className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    Mobile Protection Request
+                    Number Protection Request
                 </h2>
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                    Report harassment or spam messages to protect your mobile number.
-                    We&apos;ll review your request and add your number to our protection list if verified.
-                </p>
             </div>
 
             {/* Info Notice */}
@@ -74,7 +70,7 @@ const MobileProtectionForm: React.FC<MobileProtectionFormProps> = ({ onSubmitReq
                             Instant Email Notification
                         </p>
                         <p className="text-blue-700 dark:text-blue-300">
-                            An instant email will be sent to our admin team for review. If your request is genuine,
+                            An instant email will be sent to our team for review. If your request is genuine,
                             your number will be added to the protection list immediately.
                         </p>
                     </div>

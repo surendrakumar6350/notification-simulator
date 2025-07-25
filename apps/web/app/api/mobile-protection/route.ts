@@ -1,0 +1,67 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { sendEmail } from "../../../utils/email";
+import { connectDb } from "@/dbConnection/connect";
+import { MobileProtectionRequest } from "@/dbConnection/Schema/mobileProtectionRequest";
+
+const mobileProtectionSchema = z.object({
+    mobileNumber: z.string().min(10, "Mobile number is required"),
+    message: z.string().min(1, "Message is required"),
+    screenshot: z.string().optional(),
+});
+
+export async function POST(request: Request): Promise<NextResponse> {
+    try {
+        const body = await request.json();
+
+        const parsed = mobileProtectionSchema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Validation failed",
+                    errors: parsed.error.format(),
+                },
+                { status: 400 }
+            );
+        }
+
+        const { mobileNumber, message, screenshot } = parsed.data;
+
+        await connectDb();
+        const protectionEntry = new MobileProtectionRequest({
+            mobileNumber,
+            message,
+            screenshot,
+        });
+        await protectionEntry.save();
+
+        const emailContent = `
+      Mobile Protection Request Received:
+
+      📱 Mobile Number: ${mobileNumber}
+      📝 Message: ${message}
+    `;
+
+        try {
+            await sendEmail(emailContent);
+        } catch (emailError) {
+            console.error("Failed to send email:", emailError);
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: "Mobile protection request submitted successfully",
+        });
+    } catch (error) {
+        console.error("Mobile Protection API error:", error);
+        return NextResponse.json(
+            {
+                success: false,
+                message: "An error occurred while submitting the request",
+                error,
+            },
+            { status: 500 }
+        );
+    }
+}

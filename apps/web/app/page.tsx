@@ -184,6 +184,49 @@ function App() {
     }
   };
 
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+
+  const handleMobileProtectionRequest = async (request: {
+    mobileNumber: string;
+    message: string;
+    screenshot?: File | null;
+  }) => {
+    try {
+      const formData = {
+        mobileNumber: request.mobileNumber,
+        message: request.message,
+        screenshot: request.screenshot
+          ? await toBase64(request.screenshot)
+          : undefined,
+      };
+
+      const response = await axios.post("/api/mobile-protection", formData);
+
+      if (response.data.success) {
+        addToast({
+          type: "success",
+          message: "Mobile protection request submitted successfully.",
+        });
+      } else {
+        addToast({
+          type: "error",
+          message: response.data.message || "Submission failed.",
+        });
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+      addToast({
+        type: "error",
+        message: "Something went wrong. Please try again later.",
+      });
+    }
+  }
 
   useEffect(() => {
     const token = Cookies.get("bot_token");
@@ -257,14 +300,7 @@ function App() {
       <MobileProtectionModal
         isOpen={isMobileProtectionModalOpen}
         onClose={() => setIsMobileProtectionModalOpen(false)}
-        onSubmitRequest={(request) => {
-          // Handle mobile protection request submission
-          console.log("Mobile Protection Request:", request);
-          addToast({
-            type: 'error',
-            message: 'Under Development! Wait for the next update.'
-          });
-        }}
+        onSubmitRequest={handleMobileProtectionRequest}
       />
 
     </div>

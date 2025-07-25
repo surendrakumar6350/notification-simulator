@@ -21,7 +21,7 @@ const MobileProtectionTrigger: React.FC<MobileProtectionTriggerProps> = ({ onCli
             {/* Content */}
             <div className="relative flex items-center justify-center gap-2">
                 <Shield className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-                <span className="text-sm">Request Mobile Protection</span>
+                <span className="text-sm">Protect Number</span>
             </div>
 
             {/* Shine effect */}
