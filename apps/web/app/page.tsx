@@ -12,6 +12,7 @@ import Cookies from "js-cookie";
 import { useEffect } from 'react';
 import TurnstileWrapper from '@/components/TurnstileWrapper';
 import FeedbackModal from '@/components/FeedbackModal';
+import MobileProtectionModal from '@/components/MobileProtectionModal';
 
 function App() {
   const [isActive, setIsActive] = useState(false);
@@ -26,6 +27,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [turnstileKey, setTurnstileKey] = useState(0);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isMobileProtectionModalOpen, setIsMobileProtectionModalOpen] = useState(false);
 
 
 
@@ -244,12 +246,25 @@ function App() {
         </div>
       </main>
 
-      <Footer setIsFeedbackModalOpen={setIsFeedbackModalOpen} />
+      <Footer setIsFeedbackModalOpen={setIsFeedbackModalOpen} setIsMobileProtectionModalOpen={setIsMobileProtectionModalOpen} />
 
       <FeedbackModal
         isOpen={isFeedbackModalOpen}
         onClose={() => setIsFeedbackModalOpen(false)}
         onSubmitFeedback={handleFeedbackSubmit}
+      />
+
+      <MobileProtectionModal
+        isOpen={isMobileProtectionModalOpen}
+        onClose={() => setIsMobileProtectionModalOpen(false)}
+        onSubmitRequest={(request) => {
+          // Handle mobile protection request submission
+          console.log("Mobile Protection Request:", request);
+          addToast({
+            type: 'error',
+            message: 'Under Development! Wait for the next update.'
+          });
+        }}
       />
 
     </div>
