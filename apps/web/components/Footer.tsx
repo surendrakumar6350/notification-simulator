@@ -1,39 +1,45 @@
 import React from 'react';
-import {  Heart, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import FeedbackTrigger from './FeedbackTrigger';
+import MobileProtectionTrigger from './MobileProtectionTrigger';
 
 type FooterProps = {
   setIsFeedbackModalOpen: (open: boolean) => void;
+  setIsMobileProtectionModalOpen: (open: boolean) => void;
 };
 
-const Footer: React.FC<FooterProps> = ({ setIsFeedbackModalOpen }) => {
+const Footer: React.FC<FooterProps> = ({ setIsFeedbackModalOpen, setIsMobileProtectionModalOpen }) => {
   return (
-    <footer className="w-full p-6 text-center border-t border-white/20 dark:border-gray-700/20 backdrop-blur-sm bg-white/5 dark:bg-gray-900/5">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-            <Shield className="h-4 w-4" />
-            <span>Built for educational purposes only</span>
+    <footer className="w-full px-4 py-6 border-t border-white/20 dark:border-gray-700/20 backdrop-blur-sm bg-white/5 dark:bg-gray-900/5">
+      <div className="max-w-6xl mx-auto space-y-4">
+
+        {/* Top Section: Info + Buttons */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mt-6">
+          {/* Left side text */}
+          <div className="flex items-center justify-center gap-1">
+            <Shield className="w-3 h-3 opacity-80" />
+            <span className="text-xs md:text-sm text-zinc-400 font-light tracking-wide italic">
+              Built for educational use only
+            </span>
           </div>
 
-          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-            <span>Made with</span>
-            <Heart className="h-4 w-4 text-red-400 animate-pulse" />
-            <span>by developers</span>
+          <div className="flex items-center justify-center gap-1">
+            <span className="text-xs md:text-sm text-zinc-400 font-light tracking-wide italic flex items-center gap-1">
+              Made with <span className="text-red-400 animate-pulse">❤️</span> by developers
+            </span>
           </div>
 
 
-          <div className="flex items-center space-x-4">
-            
-          </div>
-          <div className="mt-8">
+          {/* Button container */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <FeedbackTrigger onClick={() => setIsFeedbackModalOpen(true)} />
+            <MobileProtectionTrigger onClick={() => setIsMobileProtectionModalOpen(true)} />
           </div>
-
-
         </div>
 
-        <div className="mt-4 pt-4 border-t border-white/10 dark:border-gray-700/10">
+
+        {/* Bottom Section: Copyright */}
+        <div className="pt-4 border-t border-white/10 dark:border-gray-700/10 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-500">
             © 2025 SMS Blaster Pro. Use responsibly and in accordance with local laws.
           </p>
