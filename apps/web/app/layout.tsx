@@ -28,11 +28,29 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
 
-        {/* Ad Script */}
+        <Script src="/popup.js" strategy="afterInteractive" />
+
+
         <Script
+          src="//madurird.com/tag.min.js"
           strategy="afterInteractive"
-          src="//supposecrummystorm.com/e3b38853509b5c968d97349ec11aac2b/invoke.js"
+          data-zone="9636850"
+          data-cfasync="false"
         />
+
+        {/* Additional dynamic ad script (groleegni.net) */}
+        <Script id="groleegni-script" strategy="afterInteractive">
+          {`
+            (function(d,z,s){
+              s.src='https://'+d+'/401/'+z;
+              try {
+                (document.body || document.documentElement).appendChild(s);
+              } catch(e) {}
+            })('groleegni.net',9636911,document.createElement('script'));
+          `}
+        </Script>
+
+
       </body>
     </html>
   );

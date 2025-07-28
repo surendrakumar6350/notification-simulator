@@ -289,9 +289,6 @@ function App() {
         </div>
       </main>
 
-      {/* Ad Container */}
-      <div id="container-e3b38853509b5c968d97349ec11aac2b" />
-
       <Footer setIsFeedbackModalOpen={setIsFeedbackModalOpen} setIsMobileProtectionModalOpen={setIsMobileProtectionModalOpen} />
 
       <FeedbackModal
