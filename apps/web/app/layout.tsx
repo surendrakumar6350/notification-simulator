@@ -31,7 +31,7 @@ export default function RootLayout({
         {/* Ad Script */}
         <Script
           strategy="afterInteractive"
-          src="//pl27285062.profitableratecpm.com/e3b38853509b5c968d97349ec11aac2b/invoke.js"
+          src="//supposecrummystorm.com/e3b38853509b5c968d97349ec11aac2b/invoke.js"
         />
       </body>
     </html>
