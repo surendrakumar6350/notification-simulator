@@ -40,6 +40,7 @@ jobs:
           echo "MAILSENDER_API_KEY=${{ secrets.MAILSENDER_API_KEY }}" >> .env
           echo "MAILSENDER_FROM_EMAIL=${{ secrets.MAILSENDER_FROM_EMAIL }}" >> .env
           echo "MAILSENDER_TO_EMAIL=${{ secrets.MAILSENDER_TO_EMAIL }}" >> .env
+          echo "ADMIN_PANNEL_PASSWORD=${{ secrets.ADMIN_PANNEL_PASSWORD }}" >> .env
         working-directory: apps/web
 
       - name: Start Backend Server
@@ -86,6 +87,7 @@ jobs:
           echo "MAILSENDER_API_KEY=${{ secrets.MAILSENDER_API_KEY }}" >> apps/web/.env
           echo "MAILSENDER_FROM_EMAIL=${{ secrets.MAILSENDER_FROM_EMAIL }}" >> apps/web/.env
           echo "MAILSENDER_TO_EMAIL=${{ secrets.MAILSENDER_TO_EMAIL }}" >> apps/web/.env
+          echo "ADMIN_PANNEL_PASSWORD=${{ secrets.ADMIN_PANNEL_PASSWORD }}" >> apps/web/.env
 
       - name: Build project
         run: cd apps/web && npm run build 

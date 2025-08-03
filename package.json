@@ -25,6 +25,7 @@
     "packages/*"
   ],
   "dependencies": {
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "jsonwebtoken": "^9.0.2"
   }
 }

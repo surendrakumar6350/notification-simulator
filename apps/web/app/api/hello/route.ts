@@ -7,6 +7,7 @@ import { rateLimit } from "@/lib/rateLimiter";
 import axios, { AxiosError } from "axios";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import { ProtectedNumber } from "@/dbConnection/Schema/protectedNumber";
 
 type Entry = {
     ip: string;
@@ -79,10 +80,12 @@ export async function GET(request: Request): Promise<NextResponse> {
             );
         }
 
+        // Connect to the database
+        await connectDb();
 
         // Check if the mobile number is in the excluded list
-        const excludedNumbers = process.env.EXCLUDED_NUMBERS?.split(",") || [];
-        if (excludedNumbers.includes(mobile)) {
+        const exists = await ProtectedNumber.findOne({ phoneNumber: mobile });
+        if (exists) {
             return NextResponse.json({
                 success: false,
                 message: "SMS sending is not allowed for this number.",
@@ -101,8 +104,6 @@ export async function GET(request: Request): Promise<NextResponse> {
             );
         }
 
-        // Connect to the database and log the request
-        await connectDb();
         let record = await MobileTracking.findOne({ mobileNumber: mobile });
 
         const now = new Date();
