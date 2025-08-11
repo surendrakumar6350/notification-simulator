@@ -61,54 +61,46 @@ const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('numbers');
   const { addToast, ToastContainer } = useToast();
 
-
-  const loadProtectedNumbers = async () => {
-    try {
-      const res = await axios.get('/api/admin/recent-protected');
-      const data = res.data;
-
-      if (data.success) {
-        const formattedNumbers: ProtectedNumber[] = data.data.map((item: ProtectedNumberResponse) => ({
-          id: item._id,
-          phoneNumber: item.mobileNumber,
-          addedAt: new Date(item.createdAt),
-          addedBy: 'admin',
-          reason: item.message || 'No reason provided',
-          isActive: true,
-          screenshot: item.screenshot || undefined
-        }));
-
-        setProtectedNumbers(formattedNumbers);
-      } else {
-        addToast({
-          type: 'error',
-          message: data.message || 'Failed to load protected numbers',
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching recent protected numbers:', error);
-      addToast({
-        type: 'error',
-        message: 'Unable to load protected numbers. Please try again later.',
-      });
-    }
-  };
-
-
-  const loadStats = () => {
-    // Mock stats - replace with actual API call
-    setStats({
-      totalProtected: 156,
-      addedToday: 8,
-      totalRequests: 2451,
-      blockedRequests: 387
-    });
-  };
-
   useEffect(() => {
+
+    const loadProtectedNumbers = async () => {
+      try {
+        const res = await axios.get('/api/admin/recent-protected');
+        const data = res.data;
+
+        if (data.success) {
+          const formattedNumbers: ProtectedNumber[] = data.data.map((item: ProtectedNumberResponse) => ({
+            id: item._id,
+            phoneNumber: item.mobileNumber,
+            addedAt: new Date(item.createdAt),
+            addedBy: 'admin',
+            reason: item.message || 'No reason provided',
+            isActive: true,
+            screenshot: item.screenshot || undefined
+          }));
+
+          setProtectedNumbers(formattedNumbers);
+        } else {
+          console.error('Failed to fetch protected numbers:', data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching recent protected numbers:', error);
+      }
+    };
+
+    const loadStats = () => {
+      // Mock stats - replace with actual API call
+      setStats({
+        totalProtected: 156,
+        addedToday: 8,
+        totalRequests: 2451,
+        blockedRequests: 387
+      });
+    };
+
     loadProtectedNumbers();
     loadStats();
-  }, [loadProtectedNumbers, loadStats]);
+  }, []);
 
   const validatePhoneNumber = (number: string): boolean => {
     const phoneRegex = /^[6-9]\d{9}$/;
