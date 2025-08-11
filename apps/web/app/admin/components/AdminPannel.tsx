@@ -1,8 +1,9 @@
 "use client";
 import React, { useState } from 'react';
-import { Shield, Plus, Search, Download, Trash2, Eye, EyeOff, Settings, Users, Activity } from 'lucide-react';
+import { Shield, Plus, Search, Download, Trash2, Settings, Users, Activity } from 'lucide-react';
 import { useToast } from './Toast';
 import axios, { AxiosError } from 'axios';
+import { useEffect } from 'react';
 
 interface ProtectedNumber {
   id: string;
@@ -11,6 +12,16 @@ interface ProtectedNumber {
   addedBy: string;
   reason?: string;
   isActive: boolean;
+  screenshot?: string;
+}
+
+interface ProtectedNumberResponse {
+  _id: string;
+  mobileNumber: string;
+  createdAt: string;
+  message?: string;
+  screenshot?: string;
+  updatedAt?: string;
 }
 
 interface AdminStats {
@@ -36,9 +47,6 @@ const tabs: Tab[] = [
 
 
 const AdminPanel: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [protectedNumbers, setProtectedNumbers] = useState<ProtectedNumber[]>([]);
   const [newNumber, setNewNumber] = useState('');
   const [reason, setReason] = useState('');
@@ -51,71 +59,41 @@ const AdminPanel: React.FC = () => {
     blockedRequests: 0
   });
   const [activeTab, setActiveTab] = useState<TabId>('numbers');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [loginError, setLoginError] = useState('');
-
   const { addToast, ToastContainer } = useToast();
 
 
-  const handleLogin = async () => {
-    setIsLoggingIn(true);
-    setLoginError('');
-
+  const loadProtectedNumbers = async () => {
     try {
-      const response = await axios.post('/api/admin/login', {
-        password: adminPassword
-      });
+      const res = await axios.get('/api/admin/recent-protected');
+      const data = res.data;
 
-      if (response.data?.success === true) {
-        setIsAuthenticated(true);
-        loadProtectedNumbers();
-        loadStats();
-        addToast({
-          type: 'success',
-          message: 'Successfully logged in to admin panel'
-        });
+      if (data.success) {
+        const formattedNumbers: ProtectedNumber[] = data.data.map((item: ProtectedNumberResponse) => ({
+          id: item._id,
+          phoneNumber: item.mobileNumber,
+          addedAt: new Date(item.createdAt),
+          addedBy: 'admin',
+          reason: item.message || 'No reason provided',
+          isActive: true,
+          screenshot: item.screenshot || undefined
+        }));
+
+        setProtectedNumbers(formattedNumbers);
       } else {
-        setLoginError('Authentication failed. Please check your password.');
         addToast({
           type: 'error',
-          message: 'Invalid admin password'
+          message: data.message || 'Failed to load protected numbers',
         });
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setLoginError('Something went wrong. Please try again later.');
+      console.error('Error fetching recent protected numbers:', error);
       addToast({
         type: 'error',
-        message: 'Something went wrong. Please try again.'
+        message: 'Unable to load protected numbers. Please try again later.',
       });
-    } finally {
-      setIsLoggingIn(false);
     }
   };
 
-
-  const loadProtectedNumbers = () => {
-    // Mock data - replace with actual API call
-    const mockNumbers: ProtectedNumber[] = [
-      {
-        id: '1',
-        phoneNumber: '9876543210',
-        addedAt: new Date('2024-01-15'),
-        addedBy: 'admin',
-        reason: 'User complaint',
-        isActive: true
-      },
-      {
-        id: '2',
-        phoneNumber: '8765432109',
-        addedAt: new Date('2024-01-14'),
-        addedBy: 'admin',
-        reason: 'Spam protection',
-        isActive: true
-      }
-    ];
-    setProtectedNumbers(mockNumbers);
-  };
 
   const loadStats = () => {
     // Mock stats - replace with actual API call
@@ -126,6 +104,11 @@ const AdminPanel: React.FC = () => {
       blockedRequests: 387
     });
   };
+
+  useEffect(() => {
+    loadProtectedNumbers();
+    loadStats();
+  }, [loadProtectedNumbers, loadStats]);
 
   const validatePhoneNumber = (number: string): boolean => {
     const phoneRegex = /^[6-9]\d{9}$/;
@@ -187,7 +170,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-
   const handleRemoveNumber = async (id: string, phoneNumber: string) => {
     try {
       setProtectedNumbers(prev => prev.filter(num => num.id !== id));
@@ -237,65 +219,6 @@ const AdminPanel: React.FC = () => {
     num.reason?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
-        <ToastContainer />
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Shield className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">Enter admin password to continue</p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                placeholder="Admin Password"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-
-            {loginError && (
-              <p className="text-sm text-red-600 text-center -mt-2 mb-2">{loginError}</p>
-            )}
-
-            <button
-              onClick={handleLogin}
-              disabled={isLoggingIn}
-              className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 transform shadow-lg ${isLoggingIn
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:scale-105 active:scale-95 text-white'
-                }`}
-            >
-              {isLoggingIn ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Logging in...</span>
-                </div>
-              ) : (
-                'Login to Admin Panel'
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <ToastContainer />
@@ -314,7 +237,6 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => setIsAuthenticated(false)}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
             >
               Logout
@@ -334,8 +256,8 @@ const AdminPanel: React.FC = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors duration-200 ${activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                     }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -486,7 +408,7 @@ const AdminPanel: React.FC = () => {
               {/* Protected Numbers List */}
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Protected Numbers ({filteredNumbers.length})
+                  Recent Protection Requests ({filteredNumbers.length})
                 </h3>
 
                 {filteredNumbers.length === 0 ? (
@@ -515,8 +437,46 @@ const AdminPanel: React.FC = () => {
                           <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-1 text-sm text-gray-600 dark:text-gray-300">
                             <span>Added: {number.addedAt.toLocaleDateString()}</span>
                             <span>By: {number.addedBy}</span>
-                            {number.reason && <span>Reason: {number.reason}</span>}
+                            {number.reason && (
+                              <span
+                                title={number.reason}
+                                className="truncate max-w-xs inline-block align-middle"
+                              >
+                                Reason: {number.reason}
+                              </span>
+                            )}
+
                           </div>
+
+                          {number.screenshot && (
+                            <div className="mt-2">
+                              <button
+                                onClick={() => {
+                                  // Remove prefix if it exists
+                                  const base64Data = number.screenshot?.split(',')[1];
+                                  const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
+
+                                  // Decode base64
+                                  const byteCharacters = atob(base64Data || '');
+                                  const byteNumbers = new Array(byteCharacters.length);
+                                  for (let i = 0; i < byteCharacters.length; i++) {
+                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                  }
+                                  const byteArray = new Uint8Array(byteNumbers);
+
+                                  // Create blob and open
+                                  const blob = new Blob([byteArray], { type: contentType });
+                                  const url = URL.createObjectURL(blob);
+                                  window.open(url, '_blank');
+                                  setTimeout(() => URL.revokeObjectURL(url), 1000);
+                                }}
+                                className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                              >
+                                📷 View Screenshot
+                              </button>
+
+                            </div>
+                          )}
                         </div>
 
                         <button
