@@ -206,6 +206,14 @@ function App() {
           : undefined,
       };
 
+      if (formData.message.length > 500) {
+        addToast({
+          type: 'error',
+          message: 'Message cannot exceed 500 characters.'
+        });
+        return;
+      }
+
       const response = await axios.post("/api/mobile-protection", formData);
 
       if (response.data.success) {

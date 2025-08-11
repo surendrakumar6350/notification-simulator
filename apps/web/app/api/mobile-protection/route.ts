@@ -6,7 +6,7 @@ import { MobileProtectionRequest } from "@/dbConnection/Schema/mobileProtectionR
 
 const mobileProtectionSchema = z.object({
     mobileNumber: z.string().min(10, "Mobile number is required"),
-    message: z.string().min(1, "Message is required"),
+    message: z.string().min(1, "Message is required").max(500, "Message cannot exceed 500 characters"),
     screenshot: z.string().optional(),
 });
 

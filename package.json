@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "husky": "^9.1.7",
+    "jose": "^6.0.12",
     "jsonwebtoken": "^9.0.2"
   }
 }
