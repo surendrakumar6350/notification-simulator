@@ -110,11 +110,11 @@ const MobileProtectionForm: React.FC<MobileProtectionFormProps> = ({ onSubmitReq
               rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200
               text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
                         rows={5}
-                        maxLength={1000}
+                        maxLength={500}
                         required
                     />
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {message.length}/1000 characters
+                        {message.length}/500 characters
                     </div>
                 </div>
 
