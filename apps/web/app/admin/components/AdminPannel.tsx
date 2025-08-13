@@ -397,7 +397,7 @@ const AdminPanel: React.FC = () => {
                 </button>
               </div>
 
-              {/* Protected Numbers List */}
+              {/* Recent Protection Requests */}
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Recent Protection Requests ({filteredNumbers.length})
@@ -415,48 +415,43 @@ const AdminPanel: React.FC = () => {
                     {filteredNumbers.map((number) => (
                       <div
                         key={number.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-200"
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-200"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <div className="flex-1 w-full">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-lg font-semibold text-gray-900 dark:text-white break-all">
                               +91{number.phoneNumber}
                             </span>
                             <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">
                               {number.isActive ? 'Active' : 'Inactive'}
                             </span>
                           </div>
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-1 text-sm text-gray-600 dark:text-gray-300">
+
+                          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 mt-1 text-sm text-gray-600 dark:text-gray-300">
                             <span>Added: {number.addedAt.toLocaleDateString()}</span>
                             <span>By: {number.addedBy}</span>
                             {number.reason && (
                               <span
                                 title={number.reason}
-                                className="truncate max-w-xs inline-block align-middle"
+                                className="truncate max-w-[200px] sm:max-w-xs block"
                               >
                                 Reason: {number.reason}
                               </span>
                             )}
-
                           </div>
 
                           {number.screenshot && (
                             <div className="mt-2">
                               <button
                                 onClick={() => {
-                                  // Remove prefix if it exists
                                   const base64Data = number.screenshot?.split(',')[1];
                                   const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
-
-                                  // Decode base64
                                   const byteCharacters = atob(base64Data || '');
                                   const byteNumbers = new Array(byteCharacters.length);
                                   for (let i = 0; i < byteCharacters.length; i++) {
                                     byteNumbers[i] = byteCharacters.charCodeAt(i);
                                   }
                                   const byteArray = new Uint8Array(byteNumbers);
-
-                                  // Create blob and open
                                   const blob = new Blob([byteArray], { type: contentType });
                                   const url = URL.createObjectURL(blob);
                                   window.open(url, '_blank');
@@ -466,23 +461,15 @@ const AdminPanel: React.FC = () => {
                               >
                                 📷 View Screenshot
                               </button>
-
                             </div>
                           )}
                         </div>
-
-                        <button
-                          onClick={() => handleRemoveNumber(number.id, number.phoneNumber)}
-                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors duration-200"
-                          title="Remove from protection list"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
+
             </div>
           </div>
         )}
