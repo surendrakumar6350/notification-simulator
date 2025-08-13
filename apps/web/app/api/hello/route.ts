@@ -8,6 +8,7 @@ import axios, { AxiosError } from "axios";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { ProtectedNumber } from "@/dbConnection/Schema/protectedNumber";
+import queueLog from "@/utils/queueLog";
 
 type Entry = {
     ip: string;
@@ -153,6 +154,11 @@ export async function GET(request: Request): Promise<NextResponse> {
         }
 
         console.log(`Request from IP: ${ip}, Mobile: ${mobile} Record: ${record.entries.length}`);
+
+        queueLog({
+            level: "INFO",
+            message: `Request from IP: ${ip}, Mobile: ${mobile} Record: ${record.entries.length}`,
+        });
 
         return NextResponse.json({
             success: true,
