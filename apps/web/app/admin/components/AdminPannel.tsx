@@ -1,6 +1,9 @@
 "use client";
 import React, { useState } from 'react';
-import { Shield, Plus, Search, Download, Trash2, Settings, Users, Activity } from 'lucide-react';
+import {
+  Shield, Plus, Search, Download, Settings,
+  Users, Activity, Terminal, Loader2, WifiOff
+} from 'lucide-react';
 import { useToast } from './Toast';
 import axios, { AxiosError } from 'axios';
 import { useEffect } from 'react';
@@ -45,6 +48,28 @@ const tabs: Tab[] = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
+interface Log {
+  message: string;
+  timestamp: string;
+  level: string;
+  __v?: number;
+  _id?: string | { $oid: string };
+}
+
+type Pagination = {
+  currentPage: number;
+  totalPages: number;
+  totalLogs: number;
+};
+
+
+type LogsApiResponse = {
+  success: true;
+  data: Log[];
+  pagination: Pagination;
+};
+
+
 
 const AdminPanel: React.FC = () => {
   const [protectedNumbers, setProtectedNumbers] = useState<ProtectedNumber[]>([]);
@@ -59,6 +84,13 @@ const AdminPanel: React.FC = () => {
     blockedRequests: 0
   });
   const [activeTab, setActiveTab] = useState<TabId>('numbers');
+
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreLogs, setHasMoreLogs] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
   const { addToast, ToastContainer } = useToast();
 
   useEffect(() => {
@@ -162,28 +194,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleRemoveNumber = async (id: string, phoneNumber: string) => {
-    try {
-      setProtectedNumbers(prev => prev.filter(num => num.id !== id));
-      addToast({
-        type: 'success',
-        message: `Number +91${phoneNumber} removed from protection list`
-      });
-
-      setStats(prev => ({
-        ...prev,
-        totalProtected: prev.totalProtected - 1
-      }));
-
-    } catch (error) {
-      console.error('Error removing number:', error);
-      addToast({
-        type: 'error',
-        message: 'Failed to remove number'
-      });
-    }
-  };
-
   const handleExport = () => {
     const csvContent = [
       'Phone Number,Added At,Added By,Reason,Status',
@@ -210,6 +220,48 @@ const AdminPanel: React.FC = () => {
     num.phoneNumber.includes(searchTerm) ||
     num.reason?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+
+  const loadMoreLogs = async () => {
+    if (isLoadingMore || !hasMoreLogs) return;
+
+    setIsLoadingMore(true);
+
+    try {
+      const res = await axios.get<LogsApiResponse>(`/api/admin/log`, {
+        params: { page, limit: 20 },
+      });
+
+      if (!res.data.success) {
+        console.error("Failed to load logs:");
+        setHasMoreLogs(false);
+        return;
+      }
+
+      const logsData = res.data.data;
+
+      if (logsData.length === 0) {
+        setHasMoreLogs(false);
+      } else {
+        setLogs((prev) => [...(prev ?? []), ...res.data.data]);
+        setPage((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+      setHasMoreLogs(false);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadMoreLogs();
+      setIsInitialLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -469,6 +521,105 @@ const AdminPanel: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Logs Section */}
+              {(logs && logs.length > 0) || isInitialLoading ? (
+                <div className="space-y-3 mt-8">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-blue-500" />
+                    System Logs ({logs.length})
+                  </h3>
+
+                  <div
+                    className="logs-terminal bg-black text-green-400 font-mono rounded-lg p-4 border border-gray-700 relative"
+                    style={{
+                      height: '384px', // 24rem = 384px (h-96 equivalent)
+                      overflowY: 'auto',
+                      scrollBehavior: 'smooth'
+                    }}
+                    onScroll={(e) => {
+                      const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+                      // More sensitive scroll detection for desktop
+                      const scrollThreshold = 5; // Reduced threshold for better detection
+                      const isNearBottom = scrollTop + clientHeight >= scrollHeight - scrollThreshold;
+
+                      if (isNearBottom && hasMoreLogs && !isLoadingMore) {
+                        loadMoreLogs(); // Fetch more logs
+                      }
+                    }}
+                  >
+                    {isInitialLoading ? (
+                      <div className="flex flex-col items-center justify-center h-full space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <Terminal className="w-8 h-8 text-green-400 animate-pulse" />
+                          <span className="text-green-400 text-lg">Initializing Terminal...</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                        <div className="text-green-400/70 text-sm">
+                          <span className="inline-block animate-pulse">Loading system logs</span>
+                          <span className="animate-ping">...</span>
+                        </div>
+                      </div>
+                    ) : logs.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <WifiOff className="w-6 h-6 text-gray-500" />
+                          <span className="text-gray-400 text-center">No logs available</span>
+                        </div>
+                        <div className="text-gray-500 text-sm">Waiting for system events...</div>
+                        <div className="flex space-x-1">
+                          <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse"></div>
+                          <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {logs.map((log, index) => (
+                          <div
+                            key={index}
+                            className={
+                              log.level === "error"
+                                ? "text-red-500"
+                                : log.level === "warn"
+                                  ? "text-yellow-500"
+                                  : "text-green-400"
+                            }
+                            style={{ lineHeight: '1.5', marginBottom: '4px' }}
+                          >
+                            <span className="text-gray-400 mr-2">
+                              [{new Date(log.timestamp).toLocaleTimeString()}]
+                            </span>
+                            <span className={`font-medium ${log.level === "error" ? "text-red-400" :
+                              log.level === "warn" ? "text-yellow-400" : "text-green-300"
+                              }`}>
+                              {log.level.toUpperCase()}:
+                            </span>
+                            <span className="ml-2">{log.message}</span>
+                          </div>
+                        ))}
+
+                        {isLoadingMore && (
+                          <div className="flex items-center justify-center mt-4 py-2 space-x-2">
+                            <Loader2 className="w-4 h-4 text-green-400 animate-spin" />
+                            <span className="text-gray-400 text-center">Loading more logs...</span>
+                          </div>
+                        )}
+
+                        {!hasMoreLogs && logs.length > 10 && (
+                          <div className="text-center mt-4 py-2">
+                            <span className="text-gray-500 text-sm">--- End of logs ---</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : null}
 
             </div>
           </div>
