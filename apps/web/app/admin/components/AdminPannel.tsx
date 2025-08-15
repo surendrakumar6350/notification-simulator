@@ -1,74 +1,23 @@
 "use client";
 import React, { useState } from 'react';
 import {
-  Shield, Plus, Search, Download, Settings,
-  Users, Activity, Terminal, Loader2, WifiOff
+  Shield, Plus, Search, Settings,
+  Users, Activity, Terminal, Loader2
 } from 'lucide-react';
 import { useToast } from './Toast';
 import axios, { AxiosError } from 'axios';
 import { useEffect } from 'react';
-
-interface ProtectedNumber {
-  id: string;
-  phoneNumber: string;
-  addedAt: Date;
-  addedBy: string;
-  reason?: string;
-  isActive: boolean;
-  screenshot?: string;
-}
-
-interface ProtectedNumberResponse {
-  _id: string;
-  mobileNumber: string;
-  createdAt: string;
-  message?: string;
-  screenshot?: string;
-  updatedAt?: string;
-}
-
-interface AdminStats {
-  totalProtected: number;
-  addedToday: number;
-  totalRequests: number;
-  blockedRequests: number;
-}
-
-type TabId = 'numbers' | 'stats' | 'settings';
-
-interface Tab {
-  id: TabId;
-  label: string;
-  icon: React.FC<React.SVGProps<SVGSVGElement>>;
-}
+import type {
+  ProtectedNumber, ProtectedNumberResponse, AdminStats, TabId,
+  Log, LogsApiResponse,
+  Tab
+} from '../type';
 
 const tabs: Tab[] = [
-  { id: 'numbers', label: 'Protected Numbers', icon: Shield },
+  { id: 'numbers', label: 'Home', icon: Shield },
   { id: 'stats', label: 'Statistics', icon: Activity },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
-
-interface Log {
-  message: string;
-  timestamp: string;
-  level: string;
-  __v?: number;
-  _id?: string | { $oid: string };
-}
-
-type Pagination = {
-  currentPage: number;
-  totalPages: number;
-  totalLogs: number;
-};
-
-
-type LogsApiResponse = {
-  success: true;
-  data: Log[];
-  pagination: Pagination;
-};
-
 
 
 const AdminPanel: React.FC = () => {
@@ -194,28 +143,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleExport = () => {
-    const csvContent = [
-      'Phone Number,Added At,Added By,Reason,Status',
-      ...protectedNumbers.map(num =>
-        `+91${num.phoneNumber},${num.addedAt.toISOString()},${num.addedBy},"${num.reason}",${num.isActive ? 'Active' : 'Inactive'}`
-      )
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `protected-numbers-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-
-    addToast({
-      type: 'success',
-      message: 'Protected numbers exported successfully'
-    });
-  };
-
   const filteredNumbers = protectedNumbers.filter(num =>
     num.phoneNumber.includes(searchTerm) ||
     num.reason?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -229,7 +156,7 @@ const AdminPanel: React.FC = () => {
 
     try {
       const res = await axios.get<LogsApiResponse>(`/api/admin/log`, {
-        params: { page, limit: 20 },
+        params: { page, limit: 50 },
       });
 
       if (!res.data.success) {
@@ -243,7 +170,14 @@ const AdminPanel: React.FC = () => {
       if (logsData.length === 0) {
         setHasMoreLogs(false);
       } else {
-        setLogs((prev) => [...(prev ?? []), ...res.data.data]);
+        setLogs((prev) => {
+          const updated = [...(prev ?? []), ...res.data.data];
+          const MAX_LOGS = 1000;
+          return updated.length > MAX_LOGS
+            ? updated.slice(updated.length - MAX_LOGS)
+            : updated;
+        });
+
         setPage((prev) => prev + 1);
       }
     } catch (error) {
@@ -280,11 +214,6 @@ const AdminPanel: React.FC = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-300">SMS Bomber Management</p>
               </div>
             </div>
-            <button
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
-            >
-              Logout
-            </button>
           </div>
         </div>
       </div>
@@ -371,7 +300,6 @@ const AdminPanel: React.FC = () => {
             {/* Add Number Form */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center space-x-2">
-                <Plus className="w-5 h-5" />
                 <span>Add Number to Protection List</span>
               </h2>
 
@@ -439,14 +367,6 @@ const AdminPanel: React.FC = () => {
                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   />
                 </div>
-
-                <button
-                  onClick={handleExport}
-                  className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export CSV</span>
-                </button>
               </div>
 
               {/* Recent Protection Requests */}
@@ -457,10 +377,27 @@ const AdminPanel: React.FC = () => {
 
                 {filteredNumbers.length === 0 ? (
                   <div className="text-center py-12">
-                    <Shield className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-500 dark:text-gray-400">
-                      {searchTerm ? 'No numbers match your search' : 'No protected numbers yet'}
-                    </p>
+                    <svg
+                      className="animate-spin h-8 w-8 text-gray-400 mx-auto mb-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      ></path>
+                    </svg>
+                    <p className="text-gray-500 dark:text-gray-400">Loading...</p>
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -523,103 +460,107 @@ const AdminPanel: React.FC = () => {
               </div>
 
               {/* Logs Section */}
-              {(logs && logs.length > 0) || isInitialLoading ? (
-                <div className="space-y-3 mt-8">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-blue-500" />
-                    System Logs ({logs.length})
-                  </h3>
+              <div className="space-y-3 mt-8">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-blue-500" />
+                  System Logs ({logs.length})
+                </h3>
 
-                  <div
-                    className="logs-terminal bg-black text-green-400 font-mono rounded-lg p-4 border border-gray-700 relative"
-                    style={{
-                      height: '384px', // 24rem = 384px (h-96 equivalent)
-                      overflowY: 'auto',
-                      scrollBehavior: 'smooth'
-                    }}
-                    onScroll={(e) => {
-                      const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
-                      // More sensitive scroll detection for desktop
-                      const scrollThreshold = 5; // Reduced threshold for better detection
-                      const isNearBottom = scrollTop + clientHeight >= scrollHeight - scrollThreshold;
+                <div
+                  className="logs-terminal bg-black text-green-400 font-mono rounded-lg p-4 border border-gray-700 relative"
+                  style={{
+                    height: '384px', // 24rem = 384px (h-96 equivalent)
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth'
+                  }}
+                  onScroll={(e) => {
+                    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+                    // More sensitive scroll detection for desktop
+                    const scrollThreshold = 5; // Reduced threshold for better detection
+                    const isNearBottom = scrollTop + clientHeight >= scrollHeight - scrollThreshold;
 
-                      if (isNearBottom && hasMoreLogs && !isLoadingMore) {
-                        loadMoreLogs(); // Fetch more logs
-                      }
-                    }}
-                  >
-                    {isInitialLoading ? (
-                      <div className="flex flex-col items-center justify-center h-full space-y-4">
-                        <div className="flex items-center space-x-2">
-                          <Terminal className="w-8 h-8 text-green-400 animate-pulse" />
-                          <span className="text-green-400 text-lg">Initializing Terminal...</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                        <div className="text-green-400/70 text-sm">
-                          <span className="inline-block animate-pulse">Loading system logs</span>
-                          <span className="animate-ping">...</span>
-                        </div>
+                    if (isNearBottom && hasMoreLogs && !isLoadingMore) {
+                      loadMoreLogs(); // Fetch more logs
+                    }
+                  }}
+                >
+                  {isInitialLoading ? (
+                    <div className="flex flex-col items-center justify-center h-full space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Terminal className="w-8 h-8 text-green-400 animate-pulse" />
+                        <span className="text-green-400 text-lg">Initializing Terminal...</span>
                       </div>
-                    ) : logs.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full space-y-4">
-                        <div className="flex items-center space-x-2">
-                          <WifiOff className="w-6 h-6 text-gray-500" />
-                          <span className="text-gray-400 text-center">No logs available</span>
-                        </div>
-                        <div className="text-gray-500 text-sm">Waiting for system events...</div>
-                        <div className="flex space-x-1">
-                          <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse"></div>
-                          <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                        </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
-                    ) : (
-                      <>
-                        {logs.map((log, index) => (
-                          <div
-                            key={index}
-                            className={
-                              log.level === "error"
-                                ? "text-red-500"
-                                : log.level === "warn"
-                                  ? "text-yellow-500"
-                                  : "text-green-400"
-                            }
-                            style={{ lineHeight: '1.5', marginBottom: '4px' }}
-                          >
-                            <span className="text-gray-400 mr-2">
-                              [{new Date(log.timestamp).toLocaleTimeString()}]
-                            </span>
-                            <span className={`font-medium ${log.level === "error" ? "text-red-400" :
-                              log.level === "warn" ? "text-yellow-400" : "text-green-300"
-                              }`}>
-                              {log.level.toUpperCase()}:
-                            </span>
-                            <span className="ml-2">{log.message}</span>
-                          </div>
-                        ))}
+                      <div className="text-green-400/70 text-sm">
+                        <span className="inline-block animate-pulse">Loading system logs</span>
+                        <span className="animate-ping">...</span>
+                      </div>
+                    </div>
+                  ) : logs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full space-y-4">
+                      <div className="text-gray-500 text-sm">Waiting for system events...</div>
+                      <div className="flex space-x-1">
+                        <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse"></div>
+                        <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {logs.map((log, index) => (
+                        <div
+                          key={index}
+                          className={
+                            `${log.level === "error"
+                              ? "text-red-500"
+                              : log.level === "warn"
+                                ? "text-yellow-500"
+                                : "text-green-400"
+                            } text-[7px] sm:text-xs md:text-sm lg:text-base`
+                          }
+                          style={{ lineHeight: '1.5', marginBottom: '4px' }}
+                        >
+                          <span className="text-gray-400 mr-2">
+                            [{new Date(log.timestamp).toLocaleString("en-GB", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                              hour12: true
+                            })}]
+                          </span>
+                          <span className={`font-medium ${log.level === "error" ? "text-red-400" :
+                            log.level === "warn" ? "text-yellow-400" : "text-green-300"
+                            }`}>
+                            {log.level.toUpperCase()}:
+                          </span>
+                          <span className="ml-2">{log.message}</span>
+                        </div>
+                      ))}
 
-                        {isLoadingMore && (
-                          <div className="flex items-center justify-center mt-4 py-2 space-x-2">
-                            <Loader2 className="w-4 h-4 text-green-400 animate-spin" />
-                            <span className="text-gray-400 text-center">Loading more logs...</span>
-                          </div>
-                        )}
+                      {isLoadingMore && (
+                        <div className="flex items-center justify-center mt-4 py-2 space-x-2">
+                          <Loader2 className="w-4 h-4 text-green-400 animate-spin" />
+                          <span className="text-gray-400 text-center">Loading more logs...</span>
+                        </div>
+                      )}
 
-                        {!hasMoreLogs && logs.length > 10 && (
-                          <div className="text-center mt-4 py-2">
-                            <span className="text-gray-500 text-sm">--- End of logs ---</span>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
+                      {!hasMoreLogs && logs.length > 10 && (
+                        <div className="text-center mt-4 py-2">
+                          <span className="text-gray-500 text-sm">--- End of logs ---</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-              ) : null}
+              </div>
+
 
             </div>
           </div>
