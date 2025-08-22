@@ -9,10 +9,24 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { ProtectedNumber } from "@/dbConnection/Schema/protectedNumber";
 import queueLog from "@/utils/queueLog";
+import storeStats from "@/utils/storeStats";
 
 type Entry = {
     ip: string;
     timestamp: Date;
+};
+
+// Type for worker response
+export type WorkerResultItem = {
+    url: string;
+    success: boolean;
+    error?: string;
+};
+
+export type WorkerResponse = {
+    hello: string;
+    message: string;
+    result: WorkerResultItem[];
 };
 
 const RATE_LIMIT = 6; // 6 requests
@@ -140,7 +154,8 @@ export async function GET(request: Request): Promise<NextResponse> {
 
         // Send SMS via external background worker (offloaded for speed)
         try {
-            await axios(`${process.env.NODE_ENVV == "development" ? process.env.WORKER_URI_DEV : process.env.WORKER_URI}/?mobile=${mobile}&secret=${process.env.WORKER_SECRET}`);
+            const workerResponse = await axios<WorkerResponse>(`${process.env.NODE_ENVV == "development" ? process.env.WORKER_URI_DEV : process.env.WORKER_URI}/?mobile=${mobile}&secret=${process.env.WORKER_SECRET}`);
+            storeStats(workerResponse.data);
         } catch (e: unknown) {
             const error = e as AxiosError;
 
