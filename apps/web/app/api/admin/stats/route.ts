@@ -3,6 +3,11 @@ import { connectDb } from "@/dbConnection/connect";
 import { Log } from "@/dbConnection/Schema/logs";
 import { Redis } from "ioredis";
 import { ProtectedNumber } from "@/dbConnection/Schema/protectedNumber";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET_KEY || 'your-secret';
+
 
 let redis: Redis | null = null;
 function getRedis(): Redis {
@@ -14,6 +19,26 @@ function getRedis(): Redis {
 
 export async function GET(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const tokenCookie = cookieStore.get('ADMIN_AUTH_SMS_BOMBER');
+
+        if (!tokenCookie?.value) {
+            return NextResponse.json({
+                success: false,
+                message: "Unauthorized",
+            }, { status: 401 });
+        }
+        try {
+            const token = tokenCookie.value;
+            jwt.verify(token, JWT_SECRET!);
+        } catch (error) {
+            return NextResponse.json({
+                success: false,
+                message: "Unauthorized",
+                error
+            }, { status: 401 })
+        }
+
         await connectDb();
         const redisClient = getRedis();
 
