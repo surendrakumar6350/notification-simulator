@@ -102,3 +102,13 @@ body {
 .dark .scrollbar-custom::-webkit-scrollbar-thumb {
   background-color: #9333ea; /* purple-600 */
 }
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hidden {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
