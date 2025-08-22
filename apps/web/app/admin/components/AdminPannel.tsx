@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Shield, Plus, Search,
   Users, Activity, Terminal, Loader2, Calendar, Clock, TrendingUp
@@ -24,6 +24,13 @@ const AdminPanel: React.FC = () => {
     totalRequests: 0,
     blockedRequests: 0
   });
+  const [displayStats, setDisplayStats] = useState<AdminStats>({
+    totalProtected: 0,
+    addedToday: 0,
+    totalRequests: 0,
+    blockedRequests: 0
+  });
+  const animationRef = useRef<NodeJS.Timeout | null>(null);
 
   const [logs, setLogs] = useState<Log[]>([]);
   const [page, setPage] = useState(1);
@@ -33,7 +40,7 @@ const AdminPanel: React.FC = () => {
 
   const { addToast, ToastContainer } = useToast();
 
-  useEffect(() => {
+  React.useEffect(() => {
     const loadProtectedNumbers = async () => {
       try {
         const res = await axios.get('/api/admin/recent-protected');
@@ -72,6 +79,44 @@ const AdminPanel: React.FC = () => {
     loadProtectedNumbers();
     loadStats();
   }, []);
+
+  // Animated count-up effect for stats
+  React.useEffect(() => {
+    const duration = 1000; // ms
+    const frameRate = 30; // fps
+    const steps = Math.floor(duration / (1000 / frameRate));
+    const startStats = { ...displayStats };
+    const endStats = { ...stats };
+    let currentStep = 0;
+    if (
+      Object.values(endStats).some((v) => v > 0) &&
+      (Object.keys(endStats) as (keyof AdminStats)[]).some((key) => startStats[key] !== endStats[key])
+    ) {
+      if (animationRef.current) clearInterval(animationRef.current);
+      animationRef.current = setInterval(() => {
+        currentStep++;
+        setDisplayStats((prev) => {
+          const next: AdminStats = { ...prev };
+          (Object.keys(endStats) as (keyof AdminStats)[]).forEach((key) => {
+            const start = startStats[key];
+            const end = endStats[key];
+            next[key] = Math.round(start + ((end - start) * currentStep) / steps);
+          });
+          return next;
+        });
+        if (currentStep >= steps) {
+          setDisplayStats({ ...endStats });
+          if (animationRef.current) clearInterval(animationRef.current);
+        }
+      }, 1000 / frameRate);
+    } else {
+      setDisplayStats({ ...endStats });
+    }
+    return () => {
+      if (animationRef.current) clearInterval(animationRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats.totalProtected, stats.addedToday, stats.totalRequests, stats.blockedRequests]);
 
   const validatePhoneNumber = (number: string): boolean => {
     const phoneRegex = /^[6-9]\d{9}$/;
@@ -223,7 +268,7 @@ const AdminPanel: React.FC = () => {
                   <TrendingUp className="w-4 h-4 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.totalProtected}</p>
+                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalProtected}</p>
                   <p className="text-sm text-gray-400">Total Protected</p>
                 </div>
               </div>
@@ -234,11 +279,11 @@ const AdminPanel: React.FC = () => {
                     <Plus className="w-5 h-5 text-green-400" />
                   </div>
                   <span className="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">
-                    +{stats.addedToday}
+                    +{displayStats.addedToday}
                   </span>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.addedToday}</p>
+                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.addedToday}</p>
                   <p className="text-sm text-gray-400">Added Today</p>
                 </div>
               </div>
@@ -251,7 +296,7 @@ const AdminPanel: React.FC = () => {
                   <Clock className="w-4 h-4 text-gray-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.totalRequests.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalRequests.toLocaleString()}</p>
                   <p className="text-sm text-gray-400">Total Requests</p>
                 </div>
               </div>
@@ -262,11 +307,11 @@ const AdminPanel: React.FC = () => {
                     <Users className="w-5 h-5 text-red-400" />
                   </div>
                   <span className="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded-full">
-                    {((stats.blockedRequests / stats.totalRequests) * 100).toFixed(1)}%
+                    {displayStats.totalRequests > 0 ? ((displayStats.blockedRequests / displayStats.totalRequests) * 100).toFixed(1) : 0}%
                   </span>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.blockedRequests}</p>
+                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.blockedRequests}</p>
                   <p className="text-sm text-gray-400">Blocked Requests</p>
                 </div>
               </div>
