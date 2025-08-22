@@ -40,7 +40,7 @@ const AdminPanel: React.FC = () => {
 
   const { addToast, ToastContainer } = useToast();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadProtectedNumbers = async () => {
       try {
         const res = await axios.get('/api/admin/recent-protected');
@@ -66,22 +66,34 @@ const AdminPanel: React.FC = () => {
       }
     };
 
-    const loadStats = () => {
-      // Mock stats - replace with actual API call
-      setStats({
-        totalProtected: 156,
-        addedToday: 8,
-        totalRequests: 2451,
-        blockedRequests: 387
-      });
+    const loadStats = async () => {
+      try {
+        const res = await axios.get('/api/admin/stats');
+        const data = res.data;
+
+        if (data.success) {
+          const statsFromApi = data.data;
+
+          setStats({
+            totalProtected: statsFromApi.totalProtectedNumbers ?? 0,
+            addedToday: statsFromApi.slidingWindow.successPercent ?? 0,
+            totalRequests: statsFromApi.last24hRequests ?? 0,
+            blockedRequests: statsFromApi.totalRequests ?? 0
+          });
+        } else {
+          console.error('Failed to fetch stats:', data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
     };
 
     loadProtectedNumbers();
     loadStats();
   }, []);
 
-  // Animated count-up effect for stats
-  React.useEffect(() => {
+
+  useEffect(() => {
     const duration = 1000; // ms
     const frameRate = 30; // fps
     const steps = Math.floor(duration / (1000 / frameRate));
@@ -259,7 +271,7 @@ const AdminPanel: React.FC = () => {
         <div className="p-6">
           <div className="space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -269,7 +281,7 @@ const AdminPanel: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalProtected}</p>
-                  <p className="text-sm text-gray-400">Total Protected</p>
+                  <p className="text-sm text-gray-400">Protected Numbers</p>
                 </div>
               </div>
 
@@ -283,8 +295,8 @@ const AdminPanel: React.FC = () => {
                   </span>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.addedToday}</p>
-                  <p className="text-sm text-gray-400">Added Today</p>
+                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.addedToday}%</p>
+                  <p className="text-sm text-gray-400">Success</p>
                 </div>
               </div>
 
@@ -297,7 +309,7 @@ const AdminPanel: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalRequests.toLocaleString()}</p>
-                  <p className="text-sm text-gray-400">Total Requests</p>
+                  <p className="text-sm text-gray-400">Today Requests</p>
                 </div>
               </div>
 
@@ -306,13 +318,10 @@ const AdminPanel: React.FC = () => {
                   <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
                     <Users className="w-5 h-5 text-red-400" />
                   </div>
-                  <span className="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded-full">
-                    {displayStats.totalRequests > 0 ? ((displayStats.blockedRequests / displayStats.totalRequests) * 100).toFixed(1) : 0}%
-                  </span>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.blockedRequests}</p>
-                  <p className="text-sm text-gray-400">Blocked Requests</p>
+                  <p className="text-sm text-gray-400">Total Requests</p>
                 </div>
               </div>
             </div>
