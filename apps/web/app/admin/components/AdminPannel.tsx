@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import {
   Shield, Plus, Search,
-  Users, Activity, Terminal, Loader2, Calendar, Clock, TrendingUp
+  Users, Activity, Terminal, Loader2, Clock, TrendingUp
 } from 'lucide-react';
 import { useToast } from './Toast';
 import axios, { AxiosError } from 'axios';
@@ -249,24 +249,17 @@ const AdminPanel: React.FC = () => {
       {/* Main Content */}
       <div className=" min-h-screen">
         {/* Header */}
-        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+        <header className="bg-gray-900/80 border-b border-gray-700 px-6 py-4 backdrop-blur-md">
           <div className="flex items-center justify-between">
+            {/* Left Side */}
             <div>
-              <h2 className="text-xl font-semibold text-white">
-                Dashboard Overview
+              <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                ⚡ Dashboard
               </h2>
-              <p className="text-gray-400 text-sm mt-1">
-                Monitor and manage protected numbers
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <Calendar className="w-4 h-4" />
-                <span>{new Date().toLocaleDateString()}</span>
-              </div>
             </div>
           </div>
         </header>
+
 
         <div className="p-6">
           <div className="space-y-6">
@@ -380,7 +373,7 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
 
-            {/* Content Grid */}
+            {/* First Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Protected Numbers */}
               <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
@@ -526,6 +519,12 @@ const AdminPanel: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Second Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            </div>
+
           </div>
         </div>
       </div>
