@@ -54,6 +54,15 @@ type LogsApiResponse = {
     pagination: Pagination;
 };
 
+interface Feedback {
+    _id: { $oid: string };
+    rating: number;
+    category: string;
+    message: string;
+    createdAt: string;
+}
+
+
 export type {
     ProtectedNumber,
     ProtectedNumberResponse,
@@ -62,5 +71,6 @@ export type {
     Tab,
     Log,
     LogsApiResponse,
-    Pagination
+    Pagination,
+    Feedback
 }
