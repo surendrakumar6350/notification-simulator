@@ -494,17 +494,18 @@ const AdminPanel: React.FC = () => {
                       {logs.map((log, index) => (
                         <div
                           key={index}
-                          className={`mb-2 ${log.level === "error" ? "text-red-400" :
-                            log.level === "warn" ? "text-yellow-400" : "text-green-400"
-                            }`}
+                          className={`mb-2 ${log.level === "error"
+                            ? "text-red-400"
+                            : log.level === "warn"
+                              ? "text-yellow-400"
+                              : "text-green-400"
+                            } text-xs sm:text-sm`}
                         >
-                          <span className="text-gray-500 mr-2 text-xs">
+                          <span className="text-gray-500 mr-2 text-[10px] sm:text-xs">
                             [{new Date(log.timestamp).toLocaleString()}]
                           </span>
-                          <span className="font-semibold">
-                            {log.level.toUpperCase()}:
-                          </span>
-                          <span className="ml-2">{log.message}</span>
+                          <span className="font-semibold">{log.level.toUpperCase()}:</span>
+                          <span className="ml-2 break-words">{log.message}</span>
                         </div>
                       ))}
 
