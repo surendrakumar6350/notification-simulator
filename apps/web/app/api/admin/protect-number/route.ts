@@ -3,6 +3,17 @@ import jwt from 'jsonwebtoken';
 import { cookies } from "next/headers";
 import { connectDb } from '@/dbConnection/connect';
 import { ProtectedNumber } from '@/dbConnection/Schema/protectedNumber';
+import { z } from "zod";
+import { rateLimit } from '@/lib/rateLimiter';
+import { headers } from 'next/headers';
+
+const ProtectedNumberSchema = z.object({
+    phoneNumber: z.string().min(9).max(15),
+    reason: z.string().min(3, "Must be more than 3 letters").max(255, "Reason must be at most 255 characters long")
+});
+
+const RATE_LIMIT = 6; // 6 requests
+const WINDOW_SEC = 5; // 5 seconds
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY || 'your-secret';
 
@@ -29,16 +40,43 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
 
 
-        const { phoneNumber, reason } = await request.json();
-        await connectDb();
+        const body = await request.json();
+        const parsed = ProtectedNumberSchema.safeParse(body);
 
-        if (!phoneNumber || !reason) {
-
+        if (!parsed.success) {
             return NextResponse.json({
                 success: false,
-                message: "phoneNumber and reason are required",
-            }, { status: 400 })
+                message: parsed.error.errors[0].message,
+                errors: parsed.error.errors,
+            }, { status: 400 });
         }
+
+        const { phoneNumber, reason } = parsed.data;
+
+        const headersList = await headers();
+        const ip =
+            headersList.get("cf-connecting-ip") || // Used if behind Cloudflare
+            headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || // Fallback
+            "unknown";
+
+        if (ip === "unknown") {
+            return NextResponse.json(
+                { success: false, message: "Unable to determine IP address." },
+                { status: 400 }
+            );
+        }
+
+        const rateLimitKey = `RT_ADMIN_PN:${ip}`;
+        const allowed = await rateLimit(rateLimitKey, RATE_LIMIT, WINDOW_SEC);
+
+        if (!allowed) {
+            return NextResponse.json(
+                { success: false, message: "Too many requests. Please try again later." },
+                { status: 429 }
+            );
+        }
+
+        await connectDb();
 
         // 2. Save to current list
         const exists = await ProtectedNumber.findOne({ phoneNumber });

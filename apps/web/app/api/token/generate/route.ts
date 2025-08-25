@@ -1,11 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateTurnstileToken } from "next-turnstile";
 import { v4 as uuidv4 } from "uuid";
+import { rateLimit } from "@/lib/rateLimiter";
+import { headers } from "next/headers";
 import jwt from "jsonwebtoken";
+
+const RATE_LIMIT = 6; // 6 requests
+const WINDOW_SEC = 5; // 5 seconds
 
 export async function POST(req: NextRequest) {
     try {
         const { token } = await req.json();
+
+        const headersList = await headers();
+        const ip =
+            headersList.get("cf-connecting-ip") || // Used if behind Cloudflare
+            headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || // Fallback
+            "unknown";
+
+        if (ip === "unknown") {
+            return NextResponse.json(
+                { success: false, message: "Unable to determine IP address." },
+                { status: 400 }
+            );
+        }
+
+        const rateLimitKey = `rate_limit_For_Token:${ip}`;
+        const allowed = await rateLimit(rateLimitKey, RATE_LIMIT, WINDOW_SEC);
+
+        if (!allowed) {
+            return NextResponse.json(
+                { success: false, message: "Too many requests. Please try again later." },
+                { status: 429 }
+            );
+        }
 
         // Step 1: Validate Turnstile token
         const validationResponse = await validateTurnstileToken({
