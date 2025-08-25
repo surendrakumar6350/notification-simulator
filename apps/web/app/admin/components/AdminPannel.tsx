@@ -594,7 +594,7 @@ const AdminPanel: React.FC = () => {
                             {renderStars(feedback.rating)}
                             <span className="text-white font-medium">({feedback.rating}/5)</span>
                           </div>
-                          <span className={`px-2 py-1 text-xs rounded-full border capitalize ${getCategoryColor(feedback.category)}`}>
+                          <span className={`hidden md:block  px-2 py-1 text-xs rounded-full border capitalize ${getCategoryColor(feedback.category)}`}>
                             <Tag className="w-3 h-3 inline mr-1" />
                             {feedback.category}
                           </span>

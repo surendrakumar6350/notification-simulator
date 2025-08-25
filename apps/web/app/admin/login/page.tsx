@@ -4,6 +4,12 @@ import axios from "axios";
 import { Eye, EyeOff, Shield } from "lucide-react";
 import { useToast } from "../components/Toast";
 
+type ErrorResponse = { message?: string };
+
+function isErrorResponse(data: any): data is ErrorResponse {
+  return typeof data?.message === "string";
+}
+
 const Login = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState("");
@@ -29,20 +35,20 @@ const Login = () => {
         setTimeout(() => {
           window.location.href = "/admin";
         }, 1000);
-      } else {
-        setLoginError("Authentication failed. Please check your password.");
-        addToast({
-          type: "error",
-          message: "Invalid admin password",
-        });
       }
     } catch (error) {
-      console.error("Login error:", error);
-      setLoginError("Something went wrong. Please try again later.");
-      addToast({
-        type: "error",
-        message: "Something went wrong. Please try again.",
-      });
+      if (axios.isAxiosError(error)) {
+        const msg = isErrorResponse(error.response?.data)
+          ? error.response?.data.message
+          : "An error occurred during login.";
+
+        setLoginError(msg || "An error occurred during login.");
+        addToast({ type: "error", message: msg || "Login error" });
+      } else {
+        console.error("Unexpected error:", error);
+        setLoginError("Something went wrong. Please try again later.");
+        addToast({ type: "error", message: "Something went wrong. Please try again." });
+      }
     } finally {
       setIsLoggingIn(false);
     }
@@ -94,11 +100,10 @@ const Login = () => {
           <button
             onClick={handleLogin}
             disabled={isLoggingIn}
-            className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 transform shadow-lg ${
-              isLoggingIn
-                ? "bg-gray-700 cursor-not-allowed text-gray-400"
-                : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:scale-[1.02] active:scale-95"
-            }`}
+            className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 transform shadow-lg ${isLoggingIn
+              ? "bg-gray-700 cursor-not-allowed text-gray-400"
+              : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:scale-[1.02] active:scale-95"
+              }`}
           >
             {isLoggingIn ? (
               <div className="flex items-center justify-center space-x-2">
