@@ -313,11 +313,13 @@ const AdminPanel: React.FC = () => {
                     <Plus className="w-5 h-5 text-green-400" />
                   </div>
                   <span className="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">
-                    +{displayStats.addedToday}
+                    {displayStats.addedToday.toFixed(2)}%
                   </span>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.addedToday}%</p>
+                  <p className="text-2xl font-bold text-white" aria-live="polite">
+                    {displayStats.addedToday.toFixed(2)}%
+                  </p>
                   <p className="text-sm text-gray-400">Success</p>
                 </div>
               </div>
