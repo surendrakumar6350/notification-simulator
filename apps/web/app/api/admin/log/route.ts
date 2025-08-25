@@ -3,21 +3,47 @@ import { connectDb } from "@/dbConnection/connect";
 import { Log } from "@/dbConnection/Schema/logs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { z } from "zod";
+import { headers } from "next/headers";
+import { rateLimit } from "@/lib/rateLimiter";
+
+const RATE_LIMIT = 20; // 20 requests
+const WINDOW_SEC = 5; // 5 seconds
+
+const paginationSchema = z.object({
+    page: z
+        .number()
+        .int()
+        .min(1, { message: "Page must be at least 1" })
+        .max(1000, { message: "Page cannot exceed 1000" }),
+    limit: z
+        .number()
+        .int()
+        .min(1, { message: "Limit must be at least 1" })
+        .max(50, { message: "Limit cannot exceed 50" }),
+});
+
+function validatePagination(searchParams: URLSearchParams) {
+    const page = Number(searchParams.get("page") || "1");
+    const limit = Number(searchParams.get("limit") || "10");
+
+    return paginationSchema.safeParse({ page, limit });
+}
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY || "your-secret";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(req.url);
-        const page = parseInt(searchParams.get("page") || "1", 10);
-        const limit = parseInt(searchParams.get("limit") || "10", 10);
-
-        if (page < 1 || limit < 1) {
+        const result = validatePagination(searchParams);
+        if (!result.success) {
             return NextResponse.json(
-                { success: false, message: "Invalid page or limit" },
+                { success: false, message: result.error.errors[0].message },
                 { status: 400 }
             );
         }
+
+        const { page, limit } = result.data;
 
         // --- Auth Check ---
         const cookieStore = await cookies();
@@ -35,6 +61,28 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json(
                 { success: false, message: "Unauthorized", error },
                 { status: 401 }
+            );
+        }
+
+        const headersList = await headers();
+        const ip =
+            headersList.get("cf-connecting-ip") || // Used if behind Cloudflare
+            headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || // Fallback
+            "unknown";
+
+        if (ip === "unknown") {
+            return NextResponse.json(
+                { success: false, message: "Unable to determine IP address." },
+                { status: 400 }
+            );
+        }
+        const rateLimitKey = `RT_ADMIN_LOG:${ip}`;
+        const allowed = await rateLimit(rateLimitKey, RATE_LIMIT, WINDOW_SEC);
+
+        if (!allowed) {
+            return NextResponse.json(
+                { success: false, message: "Too many requests. Please try again later." },
+                { status: 429 }
             );
         }
 
