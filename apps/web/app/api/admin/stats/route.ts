@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
                         totalRequests: total,
                         successes,
                         failures,
-                        successPercent: successPercent,
+                        successPercent: parseFloat(successPercent.toFixed(2)),
                     },
                 },
             },
