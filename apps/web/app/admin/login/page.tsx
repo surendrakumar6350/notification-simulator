@@ -4,10 +4,18 @@ import axios from "axios";
 import { Eye, EyeOff, Shield } from "lucide-react";
 import { useToast } from "../components/Toast";
 
-type ErrorResponse = { message?: string };
+type ErrorResponse = {
+  message: string;
+  [key: string]: unknown; // optional, in case backend sends more fields
+};
 
-function isErrorResponse(data: any): data is ErrorResponse {
-  return typeof data?.message === "string";
+function isErrorResponse(data: unknown): data is ErrorResponse {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "message" in data &&
+    typeof (data as Record<string, unknown>).message === "string"
+  );
 }
 
 const Login = () => {
