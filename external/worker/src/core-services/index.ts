@@ -59,7 +59,9 @@ class ApiService {
         } catch (error) {
             if (error instanceof TypeError && error.message === "Failed to fetch") {
                 if (retryCount < this.maxRetries) {
-                    console.log(`Retrying request to ${endpoint.url}, attempt ${retryCount + 1}`);
+                    if (process.env.NODE_ENVV != "production") { 
+                        console.log(`Retrying request to ${endpoint.url}, attempt ${retryCount + 1}`);  
+                    }
                     await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
                     return this.makeRequest(endpoint, mobile, retryCount + 1);
                 }
@@ -104,7 +106,9 @@ class ApiService {
         const results = await Promise.all(requests);
 
         results.forEach((result: any) => {
-            console.log(`Random parallel response from ${result.url}:`, result);
+            if (process.env.NODE_ENVV != "production") { 
+                console.log(`Random parallel response from ${result.url}:`, result);    
+            }
         });
 
         return results;
