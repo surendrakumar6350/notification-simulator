@@ -17,3 +17,7 @@ functions:
 
 plugins:
   - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 5067

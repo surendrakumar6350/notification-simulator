@@ -637,6 +637,209 @@ export default function endpoints(): Endpoint[] {
             bodyTemplate: (mobile: string) => ({
                 loginId: `+91${mobile}`
             })
+        },
+
+
+
+
+
+
+
+        /* Sunday, 7 September 2025 */
+
+
+
+
+
+        {
+            url: "https://nwaop.nuvamawealth.com/mwapi/api/Lead/GO",
+            headers: {
+                accept: "*/*",
+                "accept-language": "en-US,en;q=0.5",
+                "api-key": "c41121ed-b6fb-c9a6-bc9b-574c82929e7e",
+                "cache-control": "no-cache",
+                "content-type": "application/json",
+                origin: "https://onboarding.nuvamawealth.com",
+                pragma: "no-cache",
+                priority: "u=1, i",
+                referer: "https://onboarding.nuvamawealth.com/",
+                "sec-ch-ua": `"Chromium";v="140", "Not=A?Brand";v="24", "Brave";v="140"`,
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": `"Windows"`,
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-site",
+                "sec-gpc": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+            },
+            bodyTemplate: (mobile: string) => ({
+                contactInfo: mobile,
+                mode: "SMS"
+            })
+        },
+        {
+            url: "https://api.cordeliacruises.com/api/v2/auth/send_otp",
+            headers: {
+                accept: "*/*",
+                "accept-language": "en-US,en;q=0.6",
+                "cache-control": "no-cache",
+                "content-type": "application/json",
+                origin: "https://www.cordeliacruises.com",
+                pragma: "no-cache",
+                priority: "u=1, i",
+                referer: "https://www.cordeliacruises.com/",
+                "sec-ch-ua": `"Chromium";v="140", "Not=A?Brand";v="24", "Brave";v="140"`,
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": `"Windows"`,
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-site",
+                "sec-gpc": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+            },
+            bodyTemplate: (mobile: string) => ({
+                phone_number: mobile,
+                website: "https://www.cordeliacruises.com/?",
+                country_code: "+91",
+                page_code: "upc_reveal_prices"
+            })
+        },
+        {
+            url: "https://comservice.infinitylearn.com/api/generate-otp",
+            headers: {
+                accept: "application/json",
+                "accept-language": "en-US,en;q=0.9",
+                "cache-control": "no-cache",
+                "content-type": "application/json",
+                origin: "https://infinitylearn.com",
+                pragma: "no-cache",
+                priority: "u=1, i",
+                referer: "https://infinitylearn.com/",
+                "sec-ch-ua": `"Chromium";v="140", "Not=A?Brand";v="24", "Brave";v="140"`,
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": `"Windows"`,
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-site",
+                "sec-gpc": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+                "x-tenant": "infinitylearn"
+            },
+            bodyTemplate: (mobile: string) => ({
+                isd_code: "+91",
+                phone: mobile,
+                tenant_id: "1",
+                product_id: "300"
+            })
+        },
+        {
+            url: "https://www.eurekaforbes.com/api/public/ecom/v1/otp/send",
+            headers: {
+                accept: "application/json, text/plain, */*",
+                "accept-language": "en-US,en;q=0.8",
+                "cache-control": "no-cache",
+                client: "web",
+                "content-type": "application/json",
+                origin: "https://www.eurekaforbes.com",
+                pragma: "no-cache",
+                priority: "u=1, i",
+                referer: "https://www.eurekaforbes.com/login?redirectTo=/",
+                "sec-ch-ua": `"Chromium";v="140", "Not=A?Brand";v="24", "Brave";v="140"`,
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": `"Windows"`,
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "sec-gpc": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+            },
+            bodyTemplate: (mobile: string) => ({
+                mobile_number: mobile
+            })
+        },
+        {
+            url: "https://www.proptiger.com/madrox/app/v2/entity/login-with-number",
+            headers: {
+                accept: "*/*",
+                "accept-language": "en-US,en;q=0.8",
+                "cache-control": "no-cache",
+                "content-type": "application/json; charset=UTF-8",
+                origin: "https://www.proptiger.com",
+                pragma: "no-cache",
+                priority: "u=1, i",
+                referer: "https://www.proptiger.com/",
+                "sec-ch-ua": `"Chromium";v="140", "Not=A?Brand";v="24", "Brave";v="140"`,
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": `"Windows"`,
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "sec-gpc": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+            },
+            bodyTemplate: (mobile: string) => ({
+                contactNumber: mobile,
+                domainId: "2"
+            })
+        },
+        {
+            url: "https://api-gateway.getzype.com/auth/signinup/code",
+            headers: {
+                accept: "application/json, text/plain, */*",
+                "accept-language": "en-US,en;q=0.6",
+                "cache-control": "no-cache",
+                connection: "keep-alive",
+                "content-type": "application/json",
+                origin: "https://portal.getzype.com",
+                pragma: "no-cache",
+                referer: "https://portal.getzype.com/",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-site",
+                "sec-gpc": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+                platform: "web",
+                rid: "passwordless",
+                "sec-ch-ua": `"Chromium";v="140", "Not=A?Brand";v="24", "Brave";v="140"`,
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": `"Windows"`,
+                "st-auth-mode": "header",
+                versionNo: "1.0.0"
+            },
+            bodyTemplate: (mobile: string) => ({
+                phoneNumber: `+91${mobile}`,
+                hashKey: ""
+            })
+        },
+        {
+            url: "https://www.district.in/gw/auth/generate_otp",
+            headers: {
+                accept: "*/*",
+                "accept-language": "en-US,en;q=0.5",
+                "cache-control": "no-cache",
+                "content-type": "application/json",
+                origin: "https://www.district.in",
+                pragma: "no-cache",
+                priority: "u=1, i",
+                referer: "https://www.district.in/",
+                "sec-ch-ua": `"Chromium";v="140", "Not=A?Brand";v="24", "Brave";v="140"`,
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": `"Windows"`,
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "sec-gpc": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+                "x-app-type": "ed_web",
+                "x-app-version": "11.11.1",
+                "x-device-id": "cb9ddfad-3ef2-49e1-ae41-278d86991a29",
+                "x-guest-token": "1212"
+            },
+            bodyTemplate: (mobile: string) => ({
+                phone_number: mobile,
+                country_code: "91"
+            })
         }
     ];
 }
