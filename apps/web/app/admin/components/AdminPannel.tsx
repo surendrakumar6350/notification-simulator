@@ -409,7 +409,7 @@ const AdminPanel: React.FC = () => {
               {/* Protected Numbers */}
               <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white">Protected Numbers</h3>
+                  <h3 className="text-lg font-semibold text-white">Protection Requests</h3>
                   <span className="text-sm text-gray-400">({filteredNumbers.length})</span>
                 </div>
 
