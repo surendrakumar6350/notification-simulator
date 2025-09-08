@@ -406,7 +406,7 @@ const AdminPanel: React.FC = () => {
 
             {/* First Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Protected Numbers */}
+              {/* Protection Numbers */}
               <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-white">Protection Requests</h3>
@@ -430,7 +430,7 @@ const AdminPanel: React.FC = () => {
                       <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
                         <Search className="w-6 h-6 text-gray-400" />
                       </div>
-                      <p className="text-gray-400">No protected numbers found</p>
+                      <p className="text-gray-400">No protection requests found</p>
                     </div>
                   ) : (
                     filteredNumbers.map((number) => (
