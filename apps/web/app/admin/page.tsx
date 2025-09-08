@@ -1,5 +1,5 @@
 import React from 'react';
-import AdminPanel from './components/AdminPannel';
+import AdminPanel from './components/AdminPanel';
 
 const AdminRoute: React.FC = () => {
   return <AdminPanel />;
