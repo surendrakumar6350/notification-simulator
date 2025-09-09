@@ -13,6 +13,7 @@ import type {
 } from '../type';
 import { MessageSquare, Calendar, Tag } from 'lucide-react';
 import { renderStars, getCategoryColor } from '../utils/Pannel';
+import { StatsSkeleton } from './StatsSkeleton';
 
 const AdminPanel: React.FC = () => {
   const [protectedNumbers, setProtectedNumbers] = useState<ProtectedNumber[]>([]);
@@ -293,62 +294,65 @@ const AdminPanel: React.FC = () => {
         <div className="p-6">
           <div className="space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-blue-400" />
+            {displayStats.totalProtected != 0 ? <>
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <TrendingUp className="w-4 h-4 text-green-400" />
                   </div>
-                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  <div>
+                    <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalProtected}</p>
+                    <p className="text-sm text-gray-400">Protected Numbers</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalProtected}</p>
-                  <p className="text-sm text-gray-400">Protected Numbers</p>
+
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                      <Plus className="w-5 h-5 text-green-400" />
+                    </div>
+                    <span className="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">
+                      {displayStats.addedToday.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white" aria-live="polite">
+                      {displayStats.addedToday.toFixed(2)}%
+                    </p>
+                    <p className="text-sm text-gray-400">Success</p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <Clock className="w-4 h-4 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalRequests.toLocaleString()}</p>
+                    <p className="text-sm text-gray-400">Today Requests</p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-red-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.blockedRequests}</p>
+                    <p className="text-sm text-gray-400">Total Requests</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-green-400" />
-                  </div>
-                  <span className="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">
-                    {displayStats.addedToday.toFixed(2)}%
-                  </span>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">
-                    {displayStats.addedToday.toFixed(2)}%
-                  </p>
-                  <p className="text-sm text-gray-400">Success</p>
-                </div>
-              </div>
-
-              <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <Clock className="w-4 h-4 text-gray-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalRequests.toLocaleString()}</p>
-                  <p className="text-sm text-gray-400">Today Requests</p>
-                </div>
-              </div>
-
-              <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-red-400" />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.blockedRequests}</p>
-                  <p className="text-sm text-gray-400">Total Requests</p>
-                </div>
-              </div>
-            </div>
+            </> : <StatsSkeleton />}
 
             {/* Add Number Card */}
             <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
