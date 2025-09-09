@@ -11,7 +11,7 @@ import type {
   ProtectedNumber, ProtectedNumberResponse, AdminStats,
   Log, LogsApiResponse, Feedback
 } from '../type';
-import { MessageSquare, Calendar, Tag } from 'lucide-react';
+import { MessageSquare, Calendar, Tag, ChevronDown } from 'lucide-react';
 import { renderStars, getCategoryColor } from '../utils/Pannel';
 import { StatsSkeleton } from './StatsSkeleton';
 import { ProtectionRequestsSkeleton } from './ProtectionRequestsSkeleton';
@@ -562,6 +562,16 @@ const AdminPanel: React.FC = () => {
                     </>
                   )}
                 </div>
+
+                {/* ONLY ADDITION: Simple scroll hint at bottom */}
+                {hasMoreLogs && (logs?.length || 0) > 5 && (
+                  <div className="flex items-center justify-center mt-2 text-xs text-gray-400">
+                    <ChevronDown className="w-5 h-5 mr-1 animate-bounce" />
+                    <span>Scroll up for more logs</span>
+                    <ChevronDown className="w-5 h-5 ml-1 animate-bounce" />
+                  </div>
+                )}
+
               </div>
             </div>
 
