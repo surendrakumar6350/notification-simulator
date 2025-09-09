@@ -103,8 +103,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             recentEntries: recentEntries.reverse()
         });
     } catch (err) {
+        console.error("track-number GET failed:", err);
         return NextResponse.json(
-            { success: false, message: "Server error", error: err },
+            { success: false, message: "Server error" },
             { status: 500 }
         );
     }
