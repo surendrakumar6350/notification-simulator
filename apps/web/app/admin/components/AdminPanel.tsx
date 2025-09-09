@@ -14,9 +14,11 @@ import type {
 import { MessageSquare, Calendar, Tag } from 'lucide-react';
 import { renderStars, getCategoryColor } from '../utils/Pannel';
 import { StatsSkeleton } from './StatsSkeleton';
+import { ProtectionRequestsSkeleton } from './ProtectionRequestsSkeleton';
 
 const AdminPanel: React.FC = () => {
-  const [protectedNumbers, setProtectedNumbers] = useState<ProtectedNumber[]>([]);
+  const [protectionRequests, setProtectionRequests] = useState<ProtectedNumber[]>([]);
+  const [protectionRequestLoading, setProtectionRequestLoading] = useState(true);
   const [newNumber, setNewNumber] = useState('');
   const [reason, setReason] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,7 +64,8 @@ const AdminPanel: React.FC = () => {
             screenshot: item.screenshot || undefined
           }));
 
-          setProtectedNumbers(formattedNumbers);
+          setProtectionRequests(formattedNumbers);
+          setProtectionRequestLoading(false);
         } else {
           console.error('Failed to fetch protected numbers:', data.message);
         }
@@ -213,7 +216,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const filteredNumbers = protectedNumbers.filter(num =>
+  const filteredNumbers = protectionRequests.filter(num =>
     num.phoneNumber.includes(searchTerm) ||
     num.reason?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -410,74 +413,77 @@ const AdminPanel: React.FC = () => {
 
             {/* First Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Protection Numbers */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white">Protection Requests</h3>
-                  <span className="text-sm text-gray-400">({filteredNumbers.length})</span>
-                </div>
+              {/* Protection Requests */}
+              {protectionRequestLoading ? <ProtectionRequestsSkeleton /> : <>
+                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white">Protection Requests</h3>
+                    <span className="text-sm text-gray-400">({filteredNumbers.length})</span>
+                  </div>
 
-                <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search numbers or reasons..."
-                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  />
-                </div>
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search numbers or reasons..."
+                      className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    />
+                  </div>
 
-                <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hidden">
-                  {filteredNumbers.length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Search className="w-6 h-6 text-gray-400" />
-                      </div>
-                      <p className="text-gray-400">No protection requests found</p>
-                    </div>
-                  ) : (
-                    filteredNumbers.map((number) => (
-                      <div
-                        key={number.id}
-                        className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-mono text-white">+91{number.phoneNumber}</span>
-                          <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/20">
-                            Active
-                          </span>
+                  <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hidden">
+                    {filteredNumbers.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Search className="w-6 h-6 text-gray-400" />
                         </div>
-                        <div className="text-sm text-gray-400 space-y-1">
-                          <p>Added: {number.addedAt.toLocaleDateString()}</p>
-                          {number.reason && <p>Reason: {number.reason}</p>}
-                        </div>
-                        {number.screenshot && (
-                          <button
-                            onClick={() => {
-                              const base64Data = number.screenshot?.split(',')[1];
-                              const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
-                              const byteCharacters = atob(base64Data || '');
-                              const byteNumbers = new Array(byteCharacters.length);
-                              for (let i = 0; i < byteCharacters.length; i++) {
-                                byteNumbers[i] = byteCharacters.charCodeAt(i);
-                              }
-                              const byteArray = new Uint8Array(byteNumbers);
-                              const blob = new Blob([byteArray], { type: contentType });
-                              const url = URL.createObjectURL(blob);
-                              window.open(url, '_blank');
-                              setTimeout(() => URL.revokeObjectURL(url), 1000);
-                            }}
-                            className="mt-2 text-blue-400 hover:text-blue-300 text-xs"
-                          >
-                            📷 View Screenshot
-                          </button>
-                        )}
+                        <p className="text-gray-400">No protection requests found</p>
                       </div>
-                    ))
-                  )}
+                    ) : (
+                      filteredNumbers.map((number) => (
+                        <div
+                          key={number.id}
+                          className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-mono text-white">+91{number.phoneNumber}</span>
+                            <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/20">
+                              Active
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-400 space-y-1">
+                            <p>Added: {number.addedAt.toLocaleDateString()}</p>
+                            {number.reason && <p>Reason: {number.reason}</p>}
+                          </div>
+                          {number.screenshot && (
+                            <button
+                              onClick={() => {
+                                const base64Data = number.screenshot?.split(',')[1];
+                                const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
+                                const byteCharacters = atob(base64Data || '');
+                                const byteNumbers = new Array(byteCharacters.length);
+                                for (let i = 0; i < byteCharacters.length; i++) {
+                                  byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                }
+                                const byteArray = new Uint8Array(byteNumbers);
+                                const blob = new Blob([byteArray], { type: contentType });
+                                const url = URL.createObjectURL(blob);
+                                window.open(url, '_blank');
+                                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                              }}
+                              className="mt-2 text-blue-400 hover:text-blue-300 text-xs"
+                            >
+                              📷 View Screenshot
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
+              </>}
+
 
               {/* System Logs */}
               <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 scrollbar-hidden">
