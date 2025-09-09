@@ -610,7 +610,7 @@ const AdminPanel: React.FC = () => {
                     ) : (
                       filteredFeedbacks.map((feedback: Feedback) => (
                         <div
-                          key={feedback._id.$oid}
+                          key={typeof feedback._id === 'string' ? feedback._id : feedback._id.$oid}
                           className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
                         >
                           {/* Header with rating and category */}
