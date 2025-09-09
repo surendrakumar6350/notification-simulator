@@ -62,6 +62,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         try {
             jwt.verify(tokenCookie.value, JWT_SECRET);
         } catch (error) {
+            console.log(error);
             return NextResponse.json(
                 { success: false, message: "Unauthorized" },
                 { status: 401 }
