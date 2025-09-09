@@ -11,12 +11,17 @@ import type {
   ProtectedNumber, ProtectedNumberResponse, AdminStats,
   Log, LogsApiResponse, Feedback
 } from '../type';
-import { MessageSquare, Calendar, Tag } from 'lucide-react';
+import { MessageSquare, Calendar, Tag, ChevronDown } from 'lucide-react';
 import { renderStars, getCategoryColor } from '../utils/Pannel';
 import NumberTracker from './NumberTracker';
+import { StatsSkeleton } from './StatsSkeleton';
+import { ProtectionRequestsSkeleton } from './ProtectionRequestsSkeleton';
+import { FeedbackSkeleton } from './FeedbackSkeleton';
+import { TbGitPullRequestDraft } from "react-icons/tb";
 
 const AdminPanel: React.FC = () => {
-  const [protectedNumbers, setProtectedNumbers] = useState<ProtectedNumber[]>([]);
+  const [protectionRequests, setProtectionRequests] = useState<ProtectedNumber[]>([]);
+  const [protectionRequestLoading, setProtectionRequestLoading] = useState(true);
   const [newNumber, setNewNumber] = useState('');
   const [reason, setReason] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,6 +47,7 @@ const AdminPanel: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [feedbackLoading, setFeedbacksLoading] = useState(true);
 
   const { addToast, ToastContainer } = useToast();
 
@@ -62,7 +68,8 @@ const AdminPanel: React.FC = () => {
             screenshot: item.screenshot || undefined
           }));
 
-          setProtectedNumbers(formattedNumbers);
+          setProtectionRequests(formattedNumbers);
+          setProtectionRequestLoading(false);
         } else {
           console.error('Failed to fetch protected numbers:', data.message);
         }
@@ -102,6 +109,7 @@ const AdminPanel: React.FC = () => {
           const statsFromApi = data.recentFeedback;
 
           setFeedbacks(statsFromApi);
+          setFeedbacksLoading(false);
         } else {
           console.error('Failed to fetch Feedbacks:', data.message);
         }
@@ -213,7 +221,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const filteredNumbers = protectedNumbers.filter(num =>
+  const filteredNumbers = protectionRequests.filter(num =>
     num.phoneNumber.includes(searchTerm) ||
     num.reason?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -294,62 +302,65 @@ const AdminPanel: React.FC = () => {
         <div className="p-6">
           <div className="space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-blue-400" />
+            {displayStats.totalProtected != 0 ? <>
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <TrendingUp className="w-4 h-4 text-green-400" />
                   </div>
-                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  <div>
+                    <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalProtected}</p>
+                    <p className="text-sm text-gray-400">Protected Numbers</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalProtected}</p>
-                  <p className="text-sm text-gray-400">Protected Numbers</p>
+
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                      <Plus className="w-5 h-5 text-green-400" />
+                    </div>
+                    <span className="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">
+                      {displayStats.addedToday.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white" aria-live="polite">
+                      {displayStats.addedToday.toFixed(2)}%
+                    </p>
+                    <p className="text-sm text-gray-400">Success</p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <Clock className="w-4 h-4 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalRequests.toLocaleString()}</p>
+                    <p className="text-sm text-gray-400">Today Requests</p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-red-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.blockedRequests}</p>
+                    <p className="text-sm text-gray-400">Total Requests</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-green-400" />
-                  </div>
-                  <span className="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">
-                    {displayStats.addedToday.toFixed(2)}%
-                  </span>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">
-                    {displayStats.addedToday.toFixed(2)}%
-                  </p>
-                  <p className="text-sm text-gray-400">Success</p>
-                </div>
-              </div>
-
-              <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <Clock className="w-4 h-4 text-gray-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.totalRequests.toLocaleString()}</p>
-                  <p className="text-sm text-gray-400">Today Requests</p>
-                </div>
-              </div>
-
-              <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-red-400" />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white" aria-live="polite">{displayStats.blockedRequests}</p>
-                  <p className="text-sm text-gray-400">Total Requests</p>
-                </div>
-              </div>
-            </div>
+            </> : <StatsSkeleton />}
 
             {/* Add Number Card */}
             <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
@@ -407,74 +418,77 @@ const AdminPanel: React.FC = () => {
 
             {/* First Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Protection Numbers */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white">Protection Requests</h3>
-                  <span className="text-sm text-gray-400">({filteredNumbers.length})</span>
-                </div>
+              {/* Protection Requests */}
+              {protectionRequestLoading ? <ProtectionRequestsSkeleton /> : <>
+                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white"><TbGitPullRequestDraft className="inline-block align-middle mr-1 mb-1" /> Protection Requests</h3>
+                    <span className="text-sm text-gray-400">({filteredNumbers.length})</span>
+                  </div>
 
-                <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search numbers or reasons..."
-                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  />
-                </div>
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search numbers or reasons..."
+                      className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    />
+                  </div>
 
-                <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hidden">
-                  {filteredNumbers.length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Search className="w-6 h-6 text-gray-400" />
-                      </div>
-                      <p className="text-gray-400">No protection requests found</p>
-                    </div>
-                  ) : (
-                    filteredNumbers.map((number) => (
-                      <div
-                        key={number.id}
-                        className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-mono text-white">+91{number.phoneNumber}</span>
-                          <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/20">
-                            Active
-                          </span>
+                  <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hidden">
+                    {filteredNumbers.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Search className="w-6 h-6 text-gray-400" />
                         </div>
-                        <div className="text-sm text-gray-400 space-y-1">
-                          <p>Added: {number.addedAt.toLocaleDateString()}</p>
-                          {number.reason && <p>Reason: {number.reason}</p>}
-                        </div>
-                        {number.screenshot && (
-                          <button
-                            onClick={() => {
-                              const base64Data = number.screenshot?.split(',')[1];
-                              const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
-                              const byteCharacters = atob(base64Data || '');
-                              const byteNumbers = new Array(byteCharacters.length);
-                              for (let i = 0; i < byteCharacters.length; i++) {
-                                byteNumbers[i] = byteCharacters.charCodeAt(i);
-                              }
-                              const byteArray = new Uint8Array(byteNumbers);
-                              const blob = new Blob([byteArray], { type: contentType });
-                              const url = URL.createObjectURL(blob);
-                              window.open(url, '_blank');
-                              setTimeout(() => URL.revokeObjectURL(url), 1000);
-                            }}
-                            className="mt-2 text-blue-400 hover:text-blue-300 text-xs"
-                          >
-                            📷 View Screenshot
-                          </button>
-                        )}
+                        <p className="text-gray-400">No protection requests found</p>
                       </div>
-                    ))
-                  )}
+                    ) : (
+                      filteredNumbers.map((number) => (
+                        <div
+                          key={number.id}
+                          className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-mono text-white">+91{number.phoneNumber}</span>
+                            <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/20">
+                              Active
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-400 space-y-1">
+                            <p>Added: {number.addedAt.toLocaleDateString()}</p>
+                            {number.reason && <p>Reason: {number.reason}</p>}
+                          </div>
+                          {number.screenshot && (
+                            <button
+                              onClick={() => {
+                                const base64Data = number.screenshot?.split(',')[1];
+                                const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
+                                const byteCharacters = atob(base64Data || '');
+                                const byteNumbers = new Array(byteCharacters.length);
+                                for (let i = 0; i < byteCharacters.length; i++) {
+                                  byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                }
+                                const byteArray = new Uint8Array(byteNumbers);
+                                const blob = new Blob([byteArray], { type: contentType });
+                                const url = URL.createObjectURL(blob);
+                                window.open(url, '_blank');
+                                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                              }}
+                              className="mt-2 text-blue-400 hover:text-blue-300 text-xs"
+                            >
+                              📷 View Screenshot
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
+              </>}
+
 
               {/* System Logs */}
               <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 scrollbar-hidden">
@@ -549,82 +563,95 @@ const AdminPanel: React.FC = () => {
                     </>
                   )}
                 </div>
+
+                {/* ONLY ADDITION: Simple scroll hint at bottom */}
+                {hasMoreLogs && (logs?.length || 0) > 5 && (
+                  <div className="flex items-center justify-center mt-2 text-xs text-gray-400">
+                    <ChevronDown className="w-5 h-5 mr-1 animate-bounce" />
+                    <span>Scroll up for more logs</span>
+                    <ChevronDown className="w-5 h-5 ml-1 animate-bounce" />
+                  </div>
+                )}
+
               </div>
             </div>
 
             {/* Second Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* User Feedback */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-blue-400" />
-                    User Feedback
-                  </h3>
-                  <span className="text-sm text-gray-400">({filteredFeedbacks.length})</span>
-                </div>
+              {feedbackLoading ? <FeedbackSkeleton /> : <>
+                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 text-blue-400" />
+                      User Feedback
+                    </h3>
+                    <span className="text-sm text-gray-400">({filteredFeedbacks.length})</span>
+                  </div>
 
-                <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    value={feedbackSearchTerm}
-                    onChange={(e) => setFeedbackSearchTerm(e.target.value)}
-                    placeholder="Search feedback messages or categories..."
-                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  />
-                </div>
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      value={feedbackSearchTerm}
+                      onChange={(e) => setFeedbackSearchTerm(e.target.value)}
+                      placeholder="Search feedback messages or categories..."
+                      className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    />
+                  </div>
 
-                <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hidden">
-                  {filteredFeedbacks.length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <MessageSquare className="w-6 h-6 text-gray-400" />
+                  <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hidden">
+                    {filteredFeedbacks.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <MessageSquare className="w-6 h-6 text-gray-400" />
+                        </div>
+                        <p className="text-gray-400">No feedback found</p>
                       </div>
-                      <p className="text-gray-400">No feedback found</p>
-                    </div>
-                  ) : (
-                    filteredFeedbacks.map((feedback: Feedback) => (
-                      <div
-                        key={feedback._id.$oid}
-                        className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
-                      >
-                        {/* Header with rating and category */}
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            {renderStars(feedback.rating)}
-                            <span className="text-white font-medium">({feedback.rating}/5)</span>
+                    ) : (
+                      filteredFeedbacks.map((feedback: Feedback) => (
+                        <div
+                          key={typeof feedback._id === 'string' ? feedback._id : feedback._id.$oid}
+                          className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
+                        >
+                          {/* Header with rating and category */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              {renderStars(feedback.rating)}
+                              <span className="text-white font-medium">({feedback.rating}/5)</span>
+                            </div>
+                            <span className={`hidden md:block  px-2 py-1 text-xs rounded-full border capitalize ${getCategoryColor(feedback.category)}`}>
+                              <Tag className="w-3 h-3 inline mr-1" />
+                              {feedback.category}
+                            </span>
                           </div>
-                          <span className={`hidden md:block  px-2 py-1 text-xs rounded-full border capitalize ${getCategoryColor(feedback.category)}`}>
-                            <Tag className="w-3 h-3 inline mr-1" />
-                            {feedback.category}
-                          </span>
-                        </div>
 
-                        {/* Message */}
-                        <div className="mb-3">
-                          <p className="text-gray-300 text-sm leading-relaxed">
-                            {feedback.message}
-                          </p>
-                        </div>
+                          {/* Message */}
+                          <div className="mb-3">
+                            <p className="text-gray-300 text-sm leading-relaxed">
+                              {feedback.message}
+                            </p>
+                          </div>
 
-                        {/* Date */}
-                        <div className="flex items-center text-xs text-gray-400">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {new Date(feedback.createdAt).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
+                          {/* Date */}
+                          <div className="flex items-center text-xs text-gray-400">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {new Date(feedback.createdAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
 
-                      </div>
-                    ))
-                  )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
+              </>}
+
 
               {/* Track Number */}
               <NumberTracker />
