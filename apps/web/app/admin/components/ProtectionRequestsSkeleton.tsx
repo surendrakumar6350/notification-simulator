@@ -1,12 +1,13 @@
 import { Search } from "lucide-react";
+import { TbGitPullRequestDraft } from "react-icons/tb";
 
 export function ProtectionRequestsSkeleton() {
   return (
     <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 animate-pulse">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="h-5 w-40 bg-gray-700 rounded" />
-        <div className="h-4 w-10 bg-gray-700 rounded" />
+        <h3 className="text-lg font-semibold text-white"><TbGitPullRequestDraft className="inline-block align-middle mr-1 mb-1" /> Protection Requests</h3>
+        <span className="text-sm text-gray-400"></span>
       </div>
 
       {/* Search Bar */}
