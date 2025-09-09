@@ -17,6 +17,24 @@ type TrackingEntry = {
   timestamp: Date;
 };
 
+/**
+ * GET handler that returns tracking data for a validated Indian mobile number.
+ *
+ * Validates the `number` query parameter (10-digit, starts with 6–9), checks admin
+ * authentication via the `ADMIN_AUTH_SMS_BOMBER` JWT cookie, then reads tracking
+ * data for that mobile number from the database. Responds with the mobile number,
+ * the total number of tracking entries, and up to the last 10 entries (each with
+ * `ip` and `timestamp`) in most-recent-first order.
+ *
+ * Returns JSON responses with appropriate HTTP status codes:
+ * - 200: success with `{ success: true, message, number, totalEntries, recentEntries }`
+ * - 400: invalid `number` parameter (validation error message)
+ * - 401: missing or invalid admin JWT cookie
+ * - 404: mobile number not found
+ * - 500: server error
+ *
+ * @returns A Promise that resolves to a NextResponse containing the JSON payload described above.
+ */
 export async function GET(req: NextRequest): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(req.url);
