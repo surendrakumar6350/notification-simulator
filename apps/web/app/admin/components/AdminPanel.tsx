@@ -13,6 +13,7 @@ import type {
 } from '../type';
 import { MessageSquare, Calendar, Tag } from 'lucide-react';
 import { renderStars, getCategoryColor } from '../utils/Pannel';
+import NumberTracker from './NumberTracker';
 
 const AdminPanel: React.FC = () => {
   const [protectedNumbers, setProtectedNumbers] = useState<ProtectedNumber[]>([]);
@@ -625,18 +626,8 @@ const AdminPanel: React.FC = () => {
                 </div>
               </div>
 
-              {/* Placeholder for future section */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <div className="w-8 h-8 border-2 border-gray-600 border-dashed rounded"></div>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-400 mb-2">Coming Soon</h3>
-                    <p className="text-gray-500 text-sm">Additional dashboard features will be added here</p>
-                  </div>
-                </div>
-              </div>
+              {/* Track Number */}
+              <NumberTracker />
 
             </div>
 
