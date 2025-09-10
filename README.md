@@ -68,13 +68,13 @@ Always use the latest `.env.example` files as a template.
 
 | Variable                | Where?             | Description / How to Get                      |
 |-------------------------|--------------------|-----------------------------------------------|
-| `MONGODB_URI`           | web                | From [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) |
+| `DB`                    | web                | From [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) |
 | `REDIS_URL`             | web                | From your Redis hosting provider              |
 | `WORKER_URI`            | web                | API Gateway/Lambda endpoint URL for worker    |
 | `WORKER_SECRET`         | web, worker        | Secret shared between web & worker (AWS secret or env) |
 | `TURNSTILE_SITE_KEY`    | web                | Cloudflare Turnstile dashboard                |
 | `TURNSTILE_SECRET_KEY`  | web                | Cloudflare Turnstile dashboard                |
-| `JWT_SECRET`            | web, worker        | Generate: `openssl rand -base64 32`           |
+| `JWT_SECRET_KEY`        | web, worker        | Generate: `openssl rand -base64 32`           |
 | `MAILSENDER_KEY`        | web                | From your MailSender provider                 |
 | `MAILSENDER_FROM`       | web                | Verified sender address                       |
 | `ADMIN_PASSWORD`        | web                | Strong password for admin panel               |
