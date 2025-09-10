@@ -1,86 +1,142 @@
-# SMS Bomber
+<p align="center">
+    <img src="https://smsbomber.live/icon.png" align="center" width="30%" style="border-radius: 20%;">
+</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/MongoDB-4ea94b?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
+  <img src="https://img.shields.io/badge/AWS Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white" alt="AWS Lambda">
+  <img src="https://img.shields.io/badge/Monorepo-000000?style=for-the-badge&logo=github&logoColor=white" alt="Monorepo">
+</p>
+<br>
 
-Welcome to the **SMS Bomber** project! This tool is designed for fun purposes, allowing users to send multiple SMS messages to a specified number. Please use it responsibly and ensure compliance with local laws and regulations.
 
-## Features
+| Directory            | Description                                      |
+|----------------------|--------------------------------------------------|
+| `apps/web`           | Next.js frontend application                     |
+| `external/worker`    | AWS Lambda-compatible SMS worker service         |
+| `packages/`          | Shared utilities and type definitions            |
 
-- **Easy-to-use Interface:** Intuitive and mobile-friendly design.
-- **Multiple SMS Sending:** Enables sending bulk SMS messages for fun purposes.
-- **Modern UI:** Styled with an eye-catching and clean design.
-- **Disclaimer Included:** Warns users about intended ethical use.
+---
 
-## Live Demo
-
-Check out the live version of the project [here](#).
-
-## Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/surendrakumar6350/sms-bomber.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd sms-bomber
-   ```
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Start the development server:
-   ```bash
-   npm start
-   ```
-5. Open the application in your browser:
-   ```
-   http://localhost:3000
-   ```
-
-## Usage
-
-1. Enter the phone number you wish to target.
-2. Click on the "Send" button.
-3. Enjoy the pranking responsibly!
-
-## Project Structure
-
-```
-|-- public/
-|-- src/
-|   |-- components/
-|   |-- styles/
-|   |-- App.js
-|   |-- index.js
-|-- .gitignore
-|-- package.json
-|-- README.md
+## 📂 Project Structure
+```text
+notification-simulator/
+├── .github/                # GitHub configurations (workflows, actions, etc.)
+│   └── ...
+├── .husky/                 # Git hooks (e.g., pre-push checks)
+│   └── pre-push
+├── apps/                   # Application layer
+│   ├── docs/               # Documentation site
+│   └── web/                # Next.js frontend application
+├── external/               # External services
+│   ├── .serverless/        # Serverless framework files
+│   ├── apk-server/         # APK server
+│   └── worker/             # AWS Lambda-compatible SMS worker service
+├── mobile/                 # Mobile app
+├── packages/               # Shared packages
+│   ├── tests/              # Testing utilities
+│   └── types/              # TypeScript type definitions
+└── vercel.json             # Vercel deployment configuration
 ```
 
-## Disclaimer
 
-This project is intended for educational and fun purposes only. The developers do not support or promote any misuse of this tool. Use it ethically and ensure compliance with applicable laws.
+## 🚀 Setup Instructions
 
-## Contributing
+Follow these steps to get the project running locally:
 
-1. Fork the repository.
-2. Create a new branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Make your changes and commit:
-   ```bash
-   git commit -m "Add new feature"
-   ```
-4. Push to the branch:
-   ```bash
-   git push origin feature-name
-   ```
-5. Submit a pull request.
+### 1. **Clone the Repository**
 
-## License
+```bash
+git clone https://github.com/surendrakumar6350/notification-simulator.git
+cd notification-simulator
+```
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+### 2. **Install Dependencies**
 
-## Contact
+```bash
+npm install
+```
+This will install root, frontend and shared package dependencies.
 
-For any questions or suggestions, please contact us at [admin@smsbomber.live].
+## 🔑 Environment Variables
+
+**Both `apps/web` and `external/worker` require their own `.env` files.**  
+Always use the latest `.env.example` files as a template.
+
+### Required Secrets & How To Obtain
+
+| Variable                | Where?             | Description / How to Get                      |
+|-------------------------|--------------------|-----------------------------------------------|
+| `MONGODB_URI`           | web                | From [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) |
+| `REDIS_URL`             | web                | From your Redis hosting provider              |
+| `WORKER_URI`            | web                | API Gateway/Lambda endpoint URL for worker    |
+| `WORKER_SECRET`         | web, worker        | Secret shared between web & worker (AWS secret or env) |
+| `TURNSTILE_SITE_KEY`    | web                | Cloudflare Turnstile dashboard                |
+| `TURNSTILE_SECRET_KEY`  | web                | Cloudflare Turnstile dashboard                |
+| `JWT_SECRET`            | web, worker        | Generate: `openssl rand -base64 32`           |
+| `MAILSENDER_KEY`        | web                | From your MailSender provider                 |
+| `MAILSENDER_FROM`       | web                | Verified sender address                       |
+| `ADMIN_PASSWORD`        | web                | Strong password for admin panel               |
+
+### Example: Copying Env Files
+
+```bash
+cp apps/web/.env.example apps/web/.env
+cp external/worker/.env.example external/worker/.env
+```
+
+**Edit the new `.env` files with your real credentials.**  
+
+---
+
+### **Run the Next.js Frontend**
+
+From the project root:
+
+```bash
+npm run dev --workspace=web
+```
+or, manually:
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+App will be available at [http://localhost:3000](http://localhost:3000).
+
+### **Run the Worker Service**
+
+In a separate terminal:
+
+```bash
+cd external/worker
+npm install
+npm run dev
+```
+
+---
+
+<p align="center">
+  <!-- Tech Stack -->
+  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/MongoDB-4ea94b?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
+  <img src="https://img.shields.io/badge/AWS Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white" alt="AWS Lambda">
+
+  <br/>
+
+  <!-- Project Status -->
+  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge&color=28a745" alt="status">
+  <img src="https://img.shields.io/github/commit-activity/m/surendrakumar6350/notification-simulator?style=for-the-badge&color=0080ff" alt="commit-activity">
+  <img src="https://img.shields.io/github/issues/surendrakumar6350/notification-simulator?style=for-the-badge&color=orange" alt="issues">
+
+  <br/>
+
+  <!-- Fun -->
+  <img src="https://img.shields.io/badge/Made%20with-Love-red?style=for-the-badge" alt="made-with-love">
+  <img src="https://img.shields.io/badge/Powered%20By-Coffee-brown?style=for-the-badge" alt="powered-by-coffee">
+  <img src="https://img.shields.io/badge/PRs-Welcome-blue?style=for-the-badge&logo=github" alt="prs-welcome">
+</p>
