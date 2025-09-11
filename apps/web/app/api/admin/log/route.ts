@@ -3,25 +3,12 @@ import { connectDb } from "@/dbConnection/connect";
 import { Log } from "@/dbConnection/Schema/logs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { z } from "zod";
 import { headers } from "next/headers";
 import { rateLimit } from "@/lib/rateLimiter";
+import { paginationSchema }  from "@repo/types/zod";
 
 const RATE_LIMIT = 20; // 20 requests
 const WINDOW_SEC = 5; // 5 seconds
-
-const paginationSchema = z.object({
-    page: z
-        .number()
-        .int()
-        .min(1, { message: "Page must be at least 1" })
-        .max(1000, { message: "Page cannot exceed 1000" }),
-    limit: z
-        .number()
-        .int()
-        .min(1, { message: "Limit must be at least 1" })
-        .max(50, { message: "Limit cannot exceed 50" }),
-});
 
 function validatePagination(searchParams: URLSearchParams) {
     const page = Number(searchParams.get("page") || "1");

@@ -3,14 +3,9 @@ import jwt from 'jsonwebtoken';
 import { cookies } from "next/headers";
 import { connectDb } from '@/dbConnection/connect';
 import { ProtectedNumber } from '@/dbConnection/Schema/protectedNumber';
-import { z } from "zod";
 import { rateLimit } from '@/lib/rateLimiter';
 import { headers } from 'next/headers';
-
-const ProtectedNumberSchema = z.object({
-    phoneNumber: z.string().min(9).max(15),
-    reason: z.string().min(3, "Must be more than 3 letters").max(255, "Reason must be at most 255 characters long")
-});
+import { ProtectedNumberSchema } from "@repo/types/zod";
 
 const RATE_LIMIT = 6; // 6 requests
 const WINDOW_SEC = 5; // 5 seconds

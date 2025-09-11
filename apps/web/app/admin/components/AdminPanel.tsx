@@ -10,7 +10,7 @@ import { useEffect } from 'react';
 import type {
   ProtectedNumber, ProtectedNumberResponse, AdminStats,
   Log, LogsApiResponse, Feedback
-} from '../type';
+} from "@repo/types/admin"
 import { MessageSquare, Calendar, Tag, ChevronDown } from 'lucide-react';
 import { renderStars, getCategoryColor } from '../utils/Pannel';
 import NumberTracker from './NumberTracker';

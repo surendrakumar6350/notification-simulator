@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
 import { connectDb } from "@/dbConnection/connect";
 import { CategoryFeedback } from "@/dbConnection/Schema/categoryFeedback";
-import { z } from "zod";
 import { sendEmail } from "../../../utils/email";
 import { rateLimit } from "@/lib/rateLimiter";
 import { headers } from "next/headers";
-
-const feedbackSchema = z.object({
-    category: z.string().min(1, "Category is required").max(100, "Category is too long"),
-    message: z.string().min(1, "Message is required").max(1000, "Message is too long"),
-    rating: z.number().min(1).max(5),
-});
+import { feedbackSchema } from "@repo/types/zod";
 
 const RATE_LIMIT = 6; // 6 requests
 const WINDOW_SEC = 15; // 15 seconds

@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { sendEmail } from "../../../utils/email";
 import { connectDb } from "@/dbConnection/connect";
 import { MobileProtectionRequest } from "@/dbConnection/Schema/mobileProtectionRequest";
 import { rateLimit } from "@/lib/rateLimiter";
 import { headers } from "next/headers";
-
-const mobileProtectionSchema = z.object({
-    mobileNumber: z.string().min(10, "Mobile number is required"),
-    message: z.string().min(1, "Message is required").max(500, "Message cannot exceed 500 characters"),
-    screenshot: z.string().optional(),
-});
+import { mobileProtectionSchema } from "@repo/types/zod";
 
 const RATE_LIMIT = 5; // 5 requests
 const WINDOW_SEC = 30; // 30 seconds

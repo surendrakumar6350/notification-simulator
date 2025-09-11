@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { z } from "zod";
 import { headers } from "next/headers";
 import { rateLimit } from "@/lib/rateLimiter";
-
-const safePasswordSchema = z.string()
-  .min(1, "Password must be at least 1 characters long")
-  .max(100, "Password must be at most 100 characters long");
+import { safePasswordSchema } from "@repo/types/zod";
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY || "undefined";
 

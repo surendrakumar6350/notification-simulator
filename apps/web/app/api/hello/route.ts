@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { MobileTracking } from "@/dbConnection/Schema/mobileTracking";
 import { headers } from "next/headers";
-import { z } from "zod";
 import { connectDb } from "@/dbConnection/connect";
 import { rateLimit } from "@/lib/rateLimiter";
 import axios, { AxiosError } from "axios";
@@ -10,24 +9,8 @@ import jwt from "jsonwebtoken";
 import { ProtectedNumber } from "@/dbConnection/Schema/protectedNumber";
 import queueLog from "@/utils/queueLog";
 import storeStats from "@/utils/storeStats";
-
-type Entry = {
-    ip: string;
-    timestamp: Date;
-};
-
-// Type for worker response
-export type WorkerResultItem = {
-    url: string;
-    success: boolean;
-    error?: string;
-};
-
-export type WorkerResponse = {
-    hello: string;
-    message: string;
-    result: WorkerResultItem[];
-};
+import type { Entry, WorkerResponse } from "@repo/types/api";
+import { mobileSchema } from "@repo/types/zod";
 
 const RATE_LIMIT = 6; // 6 requests
 const WINDOW_SEC = 5; // 5 seconds
@@ -46,11 +29,6 @@ export async function GET(request: Request): Promise<NextResponse> {
         // Extract and validate the `mobile` query parameter
         const url = new URL(request.url);
         const rawMobile = url.searchParams.get("mobile");
-        const mobileSchema = z
-            .string()
-            .trim()
-            .regex(/^\d{10}$/, "Invalid mobile number. It must be exactly 10 digits.");
-
         const result = mobileSchema.safeParse(rawMobile);
         if (!result.success) {
             return NextResponse.json(

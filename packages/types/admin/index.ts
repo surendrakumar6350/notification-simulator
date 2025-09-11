@@ -62,6 +62,10 @@ interface Feedback {
     createdAt: string;
 }
 
+type ErrorResponse = {
+    message: string;
+    [key: string]: unknown;
+};
 
 export type {
     ProtectedNumber,
@@ -72,5 +76,6 @@ export type {
     Log,
     LogsApiResponse,
     Pagination,
-    Feedback
+    Feedback,
+    ErrorResponse
 }

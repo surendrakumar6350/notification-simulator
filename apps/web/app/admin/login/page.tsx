@@ -3,11 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff, Shield } from "lucide-react";
 import { useToast } from "../components/Toast";
-
-type ErrorResponse = {
-  message: string;
-  [key: string]: unknown; // optional, in case backend sends more fields
-};
+import type { ErrorResponse } from "@repo/types/admin";
 
 function isErrorResponse(data: unknown): data is ErrorResponse {
   return (

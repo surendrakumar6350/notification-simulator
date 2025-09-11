@@ -2,20 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDb } from "@/dbConnection/connect";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { z } from "zod";
 import { MobileTracking } from "@/dbConnection/Schema/mobileTracking";
-
-// Mobile number validation (Indian numbers)
-const mobileNumberSchema = z.string()
-    .trim()
-    .regex(/^[6-9]\d{9}$/, "Invalid mobile number. Must be 10 digits starting with 6-9");
-
+import { TrackingEntry } from "@repo/types/api";
+import { mobileNumberSchema } from "@repo/types/zod";
 const JWT_SECRET = process.env.JWT_SECRET_KEY || "your-secret";
-
-type TrackingEntry = {
-  ip: string;
-  timestamp: Date;
-};
 
 /**
  * GET handler that returns tracking data for a validated Indian mobile number.
