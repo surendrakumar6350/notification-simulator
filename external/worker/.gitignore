@@ -5,3 +5,4 @@ undefined
 .serverless
 package-lock.json
 .env
+src/core-services/utils/ep.json
