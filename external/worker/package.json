@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp src/core-services/utils/ep.json dist/core-services/utils/ep.json",
     "start": "npm run build && serverless offline",
     "dev": "npm run build && serverless offline",
     "deploy": "npm run build && serverless deploy"
@@ -21,7 +21,7 @@
   "dependencies": {
     "@types/aws-lambda": "^8.10.149",
     "aws-lambda": "^1.0.7",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
     "zod": "^3.25.28"
   }
 }

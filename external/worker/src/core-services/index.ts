@@ -2,28 +2,18 @@ import endpoints from "./utils/endpoints";
 import type { Endpoint, ApiResponse } from "./utils/types";
 
 class ApiService {
-    private endpoints: Endpoint[] = endpoints();
-
-    private queue: Array<() => Promise<void>> = [];
-    private isProcessing = false;
-    private readonly delayBetweenRequests = 500;
+    private endpoints: Endpoint[] = [];
     private readonly maxRetries = 2;
-    private readonly requestTimeout = 500;
+    private readonly requestTimeout = 700;
 
-    private async processQueue(): Promise<void> {
-        if (this.isProcessing || this.queue.length === 0) return;
-        this.isProcessing = true;
-
-        while (this.queue.length > 0) {
-            const request = this.queue.shift();
-            if (request) {
-                await request();
-                await new Promise(resolve => setTimeout(resolve, this.delayBetweenRequests));
-            }
-        }
-
-        this.isProcessing = false;
+    constructor() {
+        this.init();
     }
+
+    private async init() {
+        this.endpoints = await endpoints();
+    }
+
 
     private async makeRequest(
         endpoint: Endpoint,
@@ -31,9 +21,19 @@ class ApiService {
         retryCount = 0
     ): Promise<ApiResponse> {
         try {
-            const body = typeof endpoint.bodyTemplate === "function"
-                ? JSON.stringify(endpoint.bodyTemplate(mobile))
-                : endpoint.bodyTemplate;
+            let body: string | undefined = undefined;
+            if (endpoint.bodyTemplate) {
+                if (typeof endpoint.bodyTemplate === "string") {
+                    // Replace placeholder in string templates
+                    body = endpoint.bodyTemplate.replace(/\{mobile\}/g, mobile);
+                } else {
+                    // Deep replace in objects
+                    const replaced = JSON.parse(
+                        JSON.stringify(endpoint.bodyTemplate).replace(/\{mobile\}/g, mobile)
+                    );
+                    body = JSON.stringify(replaced);
+                }
+            }
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
@@ -50,7 +50,13 @@ class ApiService {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
+            let data: any;
+            try {
+                data = await response.json();
+            } catch {
+                data = await response.text();
+            }
+
             return {
                 url: endpoint.url,
                 success: true,
@@ -59,8 +65,8 @@ class ApiService {
         } catch (error) {
             if (error instanceof TypeError && error.message === "Failed to fetch") {
                 if (retryCount < this.maxRetries) {
-                    if (process.env.NODE_ENVV != "production") { 
-                        console.log(`Retrying request to ${endpoint.url}, attempt ${retryCount + 1}`);  
+                    if (process.env.NODE_ENVV != "production") {
+                        console.log(`Retrying request to ${endpoint.url}, attempt ${retryCount + 1}`);
                     }
                     await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
                     return this.makeRequest(endpoint, mobile, retryCount + 1);
@@ -75,21 +81,6 @@ class ApiService {
         }
     }
 
-    async send(mobile: string): Promise<ApiResponse[]> {
-        const results: ApiResponse[] = [];
-
-        this.endpoints.forEach(endpoint => {
-            this.queue.push(async () => {
-                const result = await this.makeRequest(endpoint, mobile);
-                results.push(result);
-                console.log(`Response from ${endpoint.url}:`, result);
-            });
-        });
-
-        await this.processQueue();
-
-        return results;
-    }
 
     async sendToRandomFive(mobile: string): Promise<ApiResponse[]> {
         if (this.endpoints.length < 2) {
@@ -106,8 +97,8 @@ class ApiService {
         const results = await Promise.all(requests);
 
         results.forEach((result: any) => {
-            if (process.env.NODE_ENVV != "production") { 
-                console.log(`Random parallel response from ${result.url}:`, result);    
+            if (process.env.NODE_ENVV != "production") {
+                console.log(`Random parallel response from ${result.url}:`, result);
             }
         });
 
