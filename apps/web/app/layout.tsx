@@ -30,6 +30,12 @@ export default function RootLayout({
           src="https://www.googletagmanager.com/gtag/js?id=G-2PZWG7N4XJ"
           strategy="afterInteractive"
         />
+        <Script
+          src="https://cloud.umami.is/script.js"
+          data-website-id="0d175ac1-e99a-4d69-8c9d-b646322bb829"
+          strategy="lazyOnload"
+        />
+
         <Script id="google-analytics" strategy="afterInteractive">
           {`
           window.dataLayer = window.dataLayer || [];
