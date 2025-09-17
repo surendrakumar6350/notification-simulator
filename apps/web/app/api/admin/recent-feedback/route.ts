@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { CategoryFeedback } from "@/dbConnection/Schema/categoryFeedback";
 import { connectDb } from "@/dbConnection/connect";
 import jwt from 'jsonwebtoken';
@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY || 'your-secret';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
 
         const cookieStore = await cookies();
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
             .sort({ createdAt: -1 })
             .limit(10);
 
-        return NextResponse.json({ success: true, recentFeedback, request: request.url }, { status: 200 });
+        return NextResponse.json({ success: true, recentFeedback }, { status: 200 });
 
     } catch (error) {
         return NextResponse.json({

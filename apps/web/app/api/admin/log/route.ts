@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { headers } from "next/headers";
 import { rateLimit } from "@/lib/rateLimiter";
-import { paginationSchema }  from "@repo/types/zod";
+import { paginationSchema } from "@repo/types/zod";
 
 const RATE_LIMIT = 20; // 20 requests
 const WINDOW_SEC = 5; // 5 seconds
@@ -81,6 +81,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             .sort({ timestamp: -1 })
             .skip(skip)
             .limit(limit)
+            .select("-_id -__v")
             .lean();
 
 

@@ -34,6 +34,7 @@ export async function GET(): Promise<NextResponse> {
         const recentRequests = await MobileProtectionRequest.find()
             .sort({ createdAt: -1 })
             .limit(10)
+            .select("-_id -__v")
             .lean();
 
         return NextResponse.json({
