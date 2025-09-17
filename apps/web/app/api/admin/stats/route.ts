@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { connectDb } from "@/dbConnection/connect";
 import { Log } from "@/dbConnection/Schema/logs";
 import { Redis } from "ioredis";
@@ -17,7 +17,7 @@ function getRedis(): Redis {
     return redis;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const cookieStore = await cookies();
         const tokenCookie = cookieStore.get('ADMIN_AUTH_SMS_BOMBER');
@@ -63,7 +63,6 @@ export async function GET(request: NextRequest) {
             {
                 success: true,
                 message: "Stats fetched successfully",
-                request: request.url,
                 data: {
                     totalRequests,
                     last24hRequests,
