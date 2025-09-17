@@ -189,26 +189,32 @@ const NumberTracker: React.FC = () => {
                     <div className="space-y-4">
                         {/* Summary */}
                         <div className="p-4 bg-gray-700 rounded-lg border border-gray-600">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="font-mono text-white text-lg">+91{trackingData.number}</span>
-                                <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-sm rounded-full border border-purple-500/20">
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span className="font-mono text-white text-lg break-all">
+                                    +91{trackingData.number}
+                                </span>
+                                <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-sm rounded-full border border-purple-500/20 whitespace-nowrap">
                                     {trackingData.totalEntries} Total Entries
                                 </span>
                             </div>
-                            <p className="text-sm text-gray-400">
-                                Last activity: {trackingData.recentEntries.length > 0
-                                    ? new Date(trackingData.recentEntries[0].timestamp).toLocaleString('en-IN', {
-                                        timeZone: 'Asia/Kolkata',
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })
-                                    : 'No recent activity'
-                                }
+                            <p className="text-sm text-gray-400 break-words">
+                                Last activity:{" "}
+                                {trackingData.recentEntries.length > 0
+                                    ? new Date(trackingData.recentEntries[0].timestamp).toLocaleString(
+                                        "en-IN",
+                                        {
+                                            timeZone: "Asia/Kolkata",
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        }
+                                    )
+                                    : "No recent activity"}
                             </p>
                         </div>
+
 
                         {/* Recent Entries */}
                         <div>
@@ -224,26 +230,25 @@ const NumberTracker: React.FC = () => {
                                             key={index}
                                             className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg border border-gray-600/50 hover:bg-gray-700/70 transition-colors duration-200"
                                         >
-                                            <div className="flex items-center space-x-3">
+                                            <div className="flex items-center space-x-3 min-w-0">
                                                 <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></div>
-                                                <div>
-                                                    <p className="text-sm text-white font-mono">IP: {entry.ip}</p>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm text-white font-mono break-all">
+                                                        IP: {entry.ip}
+                                                    </p>
                                                     <p className="text-xs text-gray-400">
-                                                        {new Date(entry.timestamp).toLocaleString('en-IN', {
-                                                            timeZone: 'Asia/Kolkata',
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit',
-                                                            second: '2-digit'
+                                                        {new Date(entry.timestamp).toLocaleString("en-IN", {
+                                                            timeZone: "Asia/Kolkata",
+                                                            year: "numeric",
+                                                            month: "short",
+                                                            day: "numeric",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                            second: "2-digit",
                                                         })}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <span className="text-xs text-gray-500 flex-shrink-0">
-                                                #{trackingData.recentEntries.length - index}
-                                            </span>
                                         </div>
                                     ))
                                 )}
