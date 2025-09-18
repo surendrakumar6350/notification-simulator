@@ -1,6 +1,7 @@
 <p align="center">
-    <img src="https://smsbomber.live/icon.png" align="center" width="30%" style="border-radius: 20%;">
+    <img src="https://iili.io/K5cI42V.md.png" align="center" width="50%" style="border-radius: 5%;">
 </p>
+
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
