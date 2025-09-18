@@ -108,15 +108,43 @@ npm run dev
 
 App will be available at [http://localhost:3000](http://localhost:3000).
 
-### **Run the Worker Service**
 
-In a separate terminal:
+### **Run the Worker Service (Monorepo)**
+
+The AWS Lambda-compatible worker service is now located at `services/worker`.
+
+#### Setup & Run Locally
+
+1. **Install dependencies:**
+  ```bash
+  cd services/worker
+  npm install
+  ```
+
+2. **Configure environment:**
+  - Copy `.env.example` to `.env` and fill in your secrets (especially `WORKER_SECRET`).
+  ```bash
+  cp .env.example .env
+  ```
+
+3. **Run locally (Serverless Offline):**
+  ```bash
+  npm run dev
+  ```
+  - The worker will be available at `http://localhost:5067` (see `serverless.yml`).
+
+#### Build & Deploy to AWS
 
 ```bash
-cd external/worker
-npm install
-npm run dev
+npm run deploy
 ```
+
+---
+
+**Note:**
+- Endpoints for SMS simulation are defined in `src/core-services/utils/ep.json`.
+- The worker expects a valid `WORKER_SECRET` for API requests.
+- For more details, see the code in `services/worker/src/handler.ts`.
 
 ---
 
