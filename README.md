@@ -49,7 +49,7 @@ Follow these steps to get the project running locally:
 ### 1. **Clone the Repository**
 
 ```bash
-git clone https://github.com/surendrakumar6350/notification-simulator.git
+git clone {{REPOSITORY_CLONE_URL}}
 cd notification-simulator
 ```
 
@@ -65,11 +65,38 @@ This will install root, frontend and shared package dependencies.
 **Both `apps/web` and `external/worker` require their own `.env` files.**  
 Always use the latest `.env.example` files as a template.
 
+### 🔒 External Link Configuration
+
+This repository uses placeholders for external links to improve security. Before deployment:
+
+1. Replace `{{REPOSITORY_CLONE_URL}}` with your actual repository URL
+2. Replace `{{MONGODB_ATLAS_URL}}` with the MongoDB Atlas URL or your preferred database provider  
+3. Replace `{{API_SERVER_URL}}` in `apps/docs/src/openapi.json` with your API server URL
+4. Configure analytics URLs in environment variables (see `.env.example`)
+
+### 🧹 Link Sanitization
+
+Use the included sanitization script to scan for hardcoded external links:
+
+```bash
+# Scan for external links
+npm run sanitize-links
+
+# Replace links with placeholders (dry run)
+npm run sanitize-links -- --fix --dry-run
+
+# Replace links with placeholders
+npm run sanitize-links -- --fix
+
+# Use custom placeholder
+npm run sanitize-links -- --fix --placeholder "YOUR_PLACEHOLDER"
+```
+
 ### Required Secrets & How To Obtain
 
 | Variable                | Where?             | Description / How to Get                      |
 |-------------------------|--------------------|-----------------------------------------------|
-| `DB`                    | web                | From [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) |
+| `DB`                    | web                | From [MongoDB Atlas]({{MONGODB_ATLAS_URL}}) |
 | `REDIS_URL`             | web                | From your Redis hosting provider              |
 | `WORKER_URI`            | web                | API Gateway/Lambda endpoint URL for worker    |
 | `WORKER_SECRET`         | web, worker        | Secret shared between web & worker (AWS secret or env) |

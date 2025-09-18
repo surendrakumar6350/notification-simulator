@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://smsbomber.live",
+      "url": "{{API_SERVER_URL}}",
       "description": "Live server"
     }
   ],
