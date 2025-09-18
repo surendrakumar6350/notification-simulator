@@ -9,10 +9,13 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "check-types": "turbo run check-types",
+    "sanitize-links": "npx tsx scripts/sanitize-live-links.ts",
+    "sanitize-links-fix": "npx tsx scripts/sanitize-live-links.ts --fix"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
+    "tsx": "^4.20.5",
     "turbo": "^2.4.4",
     "typescript": "5.8.2"
   },
