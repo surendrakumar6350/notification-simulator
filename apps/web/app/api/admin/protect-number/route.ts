@@ -10,7 +10,7 @@ import { ProtectedNumberSchema } from "@repo/types/zod";
 const RATE_LIMIT = 6; // 6 requests
 const WINDOW_SEC = 5; // 5 seconds
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY || 'your-secret';
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
@@ -26,11 +26,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         try {
             const token = tokenCookie.value;
             jwt.verify(token, JWT_SECRET!);
-        } catch (error) {
+        } catch {
             return NextResponse.json({
                 success: false,
-                message: "Unauthorized",
-                error
+                message: "Unauthorized"
             }, { status: 401 })
         }
 

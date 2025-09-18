@@ -81,7 +81,6 @@ export async function POST(request: Request): Promise<NextResponse> {
             {
                 success: false,
                 message: "An error occurred while submitting the request",
-                error,
             },
             { status: 500 }
         );

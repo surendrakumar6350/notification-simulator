@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY || 'your_default_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 const secret = new TextEncoder().encode(JWT_SECRET);
 
 async function verifyToken(token: string) {
