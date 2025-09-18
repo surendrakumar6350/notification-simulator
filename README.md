@@ -15,7 +15,7 @@
 | Directory            | Description                                      |
 |----------------------|--------------------------------------------------|
 | `apps/web`           | Next.js frontend application                     |
-| `external/worker`    | AWS Lambda-compatible SMS worker service         |
+| `services/worker`    | AWS Lambda-compatible SMS worker service         |
 | `packages/`          | Shared utilities and type definitions            |
 
 ---
@@ -30,10 +30,8 @@ notification-simulator/
 ├── apps/                   # Application layer
 │   ├── docs/               # Documentation site
 │   └── web/                # Next.js frontend application
-├── external/               # External services
-│   ├── .serverless/        # Serverless framework files
-│   ├── apk-server/         # APK server
-│   └── worker/             # AWS Lambda-compatible SMS worker service
+├── services/               # Backend and worker services
+│   ├── worker/             # AWS Lambda-compatible SMS worker service
 ├── mobile/                 # Mobile app
 ├── packages/               # Shared packages
 │   ├── tests/              # Testing utilities
@@ -62,7 +60,7 @@ This will install root, frontend and shared package dependencies.
 
 ## 🔑 Environment Variables
 
-**Both `apps/web` and `external/worker` require their own `.env` files.**  
+**Both `apps/web` and `services/worker` require their own `.env` files.**  
 Always use the latest `.env.example` files as a template.
 
 ### Required Secrets & How To Obtain
@@ -80,11 +78,12 @@ Always use the latest `.env.example` files as a template.
 | `MAILSENDER_FROM`       | web                | Verified sender address                       |
 | `ADMIN_PASSWORD`        | web                | Strong password for admin panel               |
 
+
 ### Example: Copying Env Files
 
 ```bash
 cp apps/web/.env.example apps/web/.env
-cp external/worker/.env.example external/worker/.env
+cp services/worker/.env.example services/worker/.env
 ```
 
 **Edit the new `.env` files with your real credentials.**  
@@ -109,29 +108,30 @@ npm run dev
 App will be available at [http://localhost:3000](http://localhost:3000).
 
 
-### **Run the Worker Service (Monorepo)**
 
-The AWS Lambda-compatible worker service is now located at `services/worker`.
+### **Run the Worker Service**
+
+The AWS Lambda-compatible worker service is located at `services/worker`.
 
 #### Setup & Run Locally
 
 1. **Install dependencies:**
-  ```bash
-  cd services/worker
-  npm install
-  ```
+   ```bash
+   cd services/worker
+   npm install
+   ```
 
 2. **Configure environment:**
-  - Copy `.env.example` to `.env` and fill in your secrets (especially `WORKER_SECRET`).
-  ```bash
-  cp .env.example .env
-  ```
+   - Copy `.env.example` to `.env` and fill in your secrets (especially `WORKER_SECRET`).
+   ```bash
+   cp .env.example .env
+   ```
 
 3. **Run locally (Serverless Offline):**
-  ```bash
-  npm run dev
-  ```
-  - The worker will be available at `http://localhost:5067` (see `serverless.yml`).
+   ```bash
+   npm run dev
+   ```
+   - The worker will be available at `http://localhost:5067` (see `serverless.yml`).
 
 #### Build & Deploy to AWS
 
@@ -141,8 +141,8 @@ npm run deploy
 
 ---
 
-**Note:**
-- Endpoints for SMS simulation are defined in `src/core-services/utils/ep.json`.
+**Notes:**
+- Endpoints for SMS simulation are defined in `services/worker/src/core-services/utils/ep.json`.
 - The worker expects a valid `WORKER_SECRET` for API requests.
 - For more details, see the code in `services/worker/src/handler.ts`.
 
