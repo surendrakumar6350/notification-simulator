@@ -17,7 +17,7 @@ function validatePagination(searchParams: URLSearchParams) {
     return paginationSchema.safeParse({ page, limit });
 }
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY || "your-secret";
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
     try {
@@ -44,9 +44,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
         try {
             jwt.verify(tokenCookie.value, JWT_SECRET!);
-        } catch (error) {
+        } catch {
             return NextResponse.json(
-                { success: false, message: "Unauthorized", error },
+                { success: false, message: "Unauthorized" },
                 { status: 401 }
             );
         }
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     } catch (error) {
         console.error("Error fetching logs:", error);
         return NextResponse.json(
-            { success: false, message: "Failed to fetch logs", error },
+            { success: false, message: "Failed to fetch logs" },
             { status: 500 }
         );
     }

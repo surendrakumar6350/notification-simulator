@@ -4,7 +4,7 @@ import { MobileProtectionRequest } from "@/dbConnection/Schema/mobileProtectionR
 import jwt from 'jsonwebtoken';
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY || 'your-secret';
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 export async function GET(): Promise<NextResponse> {
     try {
@@ -20,11 +20,10 @@ export async function GET(): Promise<NextResponse> {
         try {
             const token = tokenCookie.value;
             jwt.verify(token, JWT_SECRET!);
-        } catch (error) {
+        } catch {
             return NextResponse.json({
                 success: false,
-                message: "Unauthorized",
-                error
+                message: "Unauthorized"
             }, { status: 401 })
         }
 
@@ -47,7 +46,6 @@ export async function GET(): Promise<NextResponse> {
             {
                 success: false,
                 message: "Failed to fetch recent mobile protection requests",
-                error,
             },
             { status: 500 }
         );

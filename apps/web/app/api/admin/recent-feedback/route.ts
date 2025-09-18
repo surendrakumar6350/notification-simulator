@@ -4,7 +4,7 @@ import { connectDb } from "@/dbConnection/connect";
 import jwt from 'jsonwebtoken';
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY || 'your-secret';
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 export async function GET() {
     try {
@@ -21,11 +21,10 @@ export async function GET() {
         try {
             const token = tokenCookie.value;
             jwt.verify(token, JWT_SECRET!);
-        } catch (error) {
+        } catch {
             return NextResponse.json({
                 success: false,
-                message: "Unauthorized",
-                error
+                message: "Unauthorized"
             }, { status: 401 })
         }
 
@@ -37,11 +36,10 @@ export async function GET() {
 
         return NextResponse.json({ success: true, recentFeedback }, { status: 200 });
 
-    } catch (error) {
+    } catch {
         return NextResponse.json({
             success: false,
-            message: "Internal Server Error",
-            error
+            message: "Internal Server Error"
         }, { status: 500 });
     }
 }

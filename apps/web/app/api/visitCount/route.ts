@@ -39,7 +39,6 @@ export async function POST(): Promise<NextResponse> {
         return NextResponse.json(
             {
                 success: false,
-                error: "An error occurred while processing the request.",
                 message: "An error occurred while processing the request."
             },
             { status: 500 }

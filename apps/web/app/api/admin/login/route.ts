@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { rateLimit } from "@/lib/rateLimiter";
 import { safePasswordSchema } from "@repo/types/zod";
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY || "undefined";
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 const RATE_LIMIT = 6; // 6 requests
 const WINDOW_SEC = 5; // 5 seconds
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     if (password === process.env.ADMIN_PANNEL_PASSWORD) {
-      const token = jwt.sign({ username: "admin" }, JWT_SECRET, { expiresIn: "1h" });
+      const token = jwt.sign({ username: "admin" }, JWT_SECRET!, { expiresIn: "1h" });
 
       const response = NextResponse.json({
         success: true,

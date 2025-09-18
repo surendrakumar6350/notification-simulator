@@ -6,7 +6,7 @@ import { ProtectedNumber } from "@/dbConnection/Schema/protectedNumber";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY || 'your-secret';
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 
 let redis: Redis | null = null;
@@ -31,11 +31,10 @@ export async function GET() {
         try {
             const token = tokenCookie.value;
             jwt.verify(token, JWT_SECRET!);
-        } catch (error) {
+        } catch {
             return NextResponse.json({
                 success: false,
-                message: "Unauthorized",
-                error
+                message: "Unauthorized"
             }, { status: 401 })
         }
 
