@@ -566,7 +566,7 @@ const AdminPanel: React.FC = () => {
                       <>
                         {filteredNumbers.map((number) => (
                           <div
-                            key={number.id}
+                            key={`${number.id || number.phoneNumber}-${number.addedAt instanceof Date ? number.addedAt.getTime() : number.addedAt}`}
                             className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
                           >
                             <div className="flex items-center justify-between mb-2">
