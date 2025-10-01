@@ -62,6 +62,36 @@ interface Feedback {
     createdAt: string;
 }
 
+type ProtectionRequestPagination = {
+    currentPage: number;
+    totalPages: number;
+    totalRequests: number;
+};
+
+type FeedbackPagination = {
+    currentPage: number;
+    totalPages: number;
+    totalFeedbacks: number;
+};
+
+type ProtectionRequestsApiResponse = {
+    success: true;
+    data: ProtectedNumberResponse[];
+    pagination: ProtectionRequestPagination;
+} | {
+    success: false;
+    message: string;
+};
+
+type FeedbackApiResponse = {
+    success: true;
+    recentFeedback: Feedback[];
+    pagination: FeedbackPagination;
+} | {
+    success: false;
+    message: string;
+};
+
 type ErrorResponse = {
     message: string;
     [key: string]: unknown;
@@ -77,5 +107,9 @@ export type {
     LogsApiResponse,
     Pagination,
     Feedback,
+    ProtectionRequestPagination,
+    FeedbackPagination,
+    ProtectionRequestsApiResponse,
+    FeedbackApiResponse,
     ErrorResponse
 }

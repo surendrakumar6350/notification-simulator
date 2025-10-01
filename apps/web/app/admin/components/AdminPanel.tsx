@@ -9,7 +9,7 @@ import axios, { AxiosError } from 'axios';
 import { useEffect } from 'react';
 import type {
   ProtectedNumber, ProtectedNumberResponse, AdminStats,
-  Log, LogsApiResponse, Feedback
+  Log, LogsApiResponse, Feedback, ProtectionRequestsApiResponse, FeedbackApiResponse
 } from "@repo/types/admin"
 import { MessageSquare, Calendar, Tag, ChevronDown } from 'lucide-react';
 import { renderStars, getCategoryColor } from '../utils/Pannel';
@@ -22,6 +22,9 @@ import { TbGitPullRequestDraft } from "react-icons/tb";
 const AdminPanel: React.FC = () => {
   const [protectionRequests, setProtectionRequests] = useState<ProtectedNumber[]>([]);
   const [protectionRequestLoading, setProtectionRequestLoading] = useState(true);
+  const [protectionRequestPage, setProtectionRequestPage] = useState(1);
+  const [hasMoreProtectionRequests, setHasMoreProtectionRequests] = useState(true);
+  const [isLoadingMoreProtectionRequests, setIsLoadingMoreProtectionRequests] = useState(false);
   const [newNumber, setNewNumber] = useState('');
   const [reason, setReason] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,13 +51,18 @@ const AdminPanel: React.FC = () => {
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [feedbackLoading, setFeedbacksLoading] = useState(true);
+  const [feedbackPage, setFeedbackPage] = useState(1);
+  const [hasMoreFeedbacks, setHasMoreFeedbacks] = useState(true);
+  const [isLoadingMoreFeedbacks, setIsLoadingMoreFeedbacks] = useState(false);
 
   const { addToast, ToastContainer } = useToast();
 
   useEffect(() => {
     const loadProtectedNumbers = async () => {
       try {
-        const res = await axios.get('/api/admin/recent-protected');
+        const res = await axios.get<ProtectionRequestsApiResponse>('/api/admin/recent-protected', {
+          params: { page: 1, limit: 10 },
+        });
         const data = res.data;
 
         if (data.success) {
@@ -70,11 +78,17 @@ const AdminPanel: React.FC = () => {
 
           setProtectionRequests(formattedNumbers);
           setProtectionRequestLoading(false);
+          
+          if (data.data.length === 0 || data.pagination.currentPage >= data.pagination.totalPages) {
+            setHasMoreProtectionRequests(false);
+          }
         } else {
           console.error('Failed to fetch protected numbers:', data.message);
+          setProtectionRequestLoading(false);
         }
       } catch (error) {
         console.error('Error fetching recent protected numbers:', error);
+        setProtectionRequestLoading(false);
       }
     };
 
@@ -102,7 +116,9 @@ const AdminPanel: React.FC = () => {
 
     const loadRecentFeedbacks = async () => {
       try {
-        const res = await axios.get('/api/admin/recent-feedback');
+        const res = await axios.get<FeedbackApiResponse>('/api/admin/recent-feedback', {
+          params: { page: 1, limit: 10 },
+        });
         const data = res.data;
 
         if (data.success) {
@@ -110,11 +126,17 @@ const AdminPanel: React.FC = () => {
 
           setFeedbacks(statsFromApi);
           setFeedbacksLoading(false);
+          
+          if (data.recentFeedback.length === 0 || data.pagination.currentPage >= data.pagination.totalPages) {
+            setHasMoreFeedbacks(false);
+          }
         } else {
           console.error('Failed to fetch Feedbacks:', data.message);
+          setFeedbacksLoading(false);
         }
       } catch (error) {
         console.error('Error fetching Feedbacks:', error);
+        setFeedbacksLoading(false);
       }
     };
 
@@ -226,6 +248,53 @@ const AdminPanel: React.FC = () => {
     num.reason?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const loadMoreProtectionRequests = async () => {
+    if (isLoadingMoreProtectionRequests || !hasMoreProtectionRequests) return;
+
+    setIsLoadingMoreProtectionRequests(true);
+
+    try {
+      const nextPage = protectionRequestPage + 1;
+      const res = await axios.get<ProtectionRequestsApiResponse>('/api/admin/recent-protected', {
+        params: { page: nextPage, limit: 10 },
+      });
+
+      if (!res.data.success) {
+        console.error("Failed to load protection requests:");
+        setHasMoreProtectionRequests(false);
+        return;
+      }
+
+      const data = res.data.data;
+
+      if (data.length === 0) {
+        setHasMoreProtectionRequests(false);
+      } else {
+        const formattedNumbers: ProtectedNumber[] = data.map((item: ProtectedNumberResponse) => ({
+          id: item._id,
+          phoneNumber: item.mobileNumber,
+          addedAt: new Date(item.createdAt),
+          addedBy: 'admin',
+          reason: item.message || 'No reason provided',
+          isActive: true,
+          screenshot: item.screenshot || undefined
+        }));
+
+        setProtectionRequests((prev) => [...prev, ...formattedNumbers]);
+        setProtectionRequestPage(nextPage);
+        
+        if (res.data.pagination.currentPage >= res.data.pagination.totalPages) {
+          setHasMoreProtectionRequests(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching protection requests:", error);
+      setHasMoreProtectionRequests(false);
+    } finally {
+      setIsLoadingMoreProtectionRequests(false);
+    }
+  };
+
   const loadMoreLogs = async () => {
     if (isLoadingMore || !hasMoreLogs) return;
 
@@ -278,6 +347,43 @@ const AdminPanel: React.FC = () => {
     feedback.message.toLowerCase().includes(feedbackSearchTerm.toLowerCase()) ||
     feedback.category.toLowerCase().includes(feedbackSearchTerm.toLowerCase())
   );
+
+  const loadMoreFeedbacks = async () => {
+    if (isLoadingMoreFeedbacks || !hasMoreFeedbacks) return;
+
+    setIsLoadingMoreFeedbacks(true);
+
+    try {
+      const nextPage = feedbackPage + 1;
+      const res = await axios.get<FeedbackApiResponse>('/api/admin/recent-feedback', {
+        params: { page: nextPage, limit: 10 },
+      });
+
+      if (!res.data.success) {
+        console.error("Failed to load feedbacks:");
+        setHasMoreFeedbacks(false);
+        return;
+      }
+
+      const data = res.data.recentFeedback;
+
+      if (data.length === 0) {
+        setHasMoreFeedbacks(false);
+      } else {
+        setFeedbacks((prev) => [...prev, ...data]);
+        setFeedbackPage(nextPage);
+        
+        if (res.data.pagination.currentPage >= res.data.pagination.totalPages) {
+          setHasMoreFeedbacks(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching feedbacks:", error);
+      setHasMoreFeedbacks(false);
+    } finally {
+      setIsLoadingMoreFeedbacks(false);
+    }
+  };
 
 
   return (
@@ -437,7 +543,18 @@ const AdminPanel: React.FC = () => {
                     />
                   </div>
 
-                  <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hidden">
+                  <div 
+                    className="space-y-3 max-h-80 overflow-y-auto scrollbar-hidden"
+                    onScroll={(e) => {
+                      const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+                      const scrollThreshold = 5;
+                      const isNearBottom = scrollTop + clientHeight >= scrollHeight - scrollThreshold;
+
+                      if (isNearBottom && hasMoreProtectionRequests && !isLoadingMoreProtectionRequests) {
+                        loadMoreProtectionRequests();
+                      }
+                    }}
+                  >
                     {filteredNumbers.length === 0 ? (
                       <div className="text-center py-8">
                         <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -446,44 +563,59 @@ const AdminPanel: React.FC = () => {
                         <p className="text-gray-400">No protection requests found</p>
                       </div>
                     ) : (
-                      filteredNumbers.map((number) => (
-                        <div
-                          key={number.id}
-                          className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-mono text-white">+91{number.phoneNumber}</span>
-                            <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/20">
-                              Active
-                            </span>
+                      <>
+                        {filteredNumbers.map((number) => (
+                          <div
+                            key={number.id}
+                            className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-mono text-white">+91{number.phoneNumber}</span>
+                              <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/20">
+                                Active
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-400 space-y-1">
+                              <p>Added: {number.addedAt.toLocaleDateString()}</p>
+                              {number.reason && <p>Reason: {number.reason}</p>}
+                            </div>
+                            {number.screenshot && (
+                              <button
+                                onClick={() => {
+                                  const base64Data = number.screenshot?.split(',')[1];
+                                  const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
+                                  const byteCharacters = atob(base64Data || '');
+                                  const byteNumbers = new Array(byteCharacters.length);
+                                  for (let i = 0; i < byteCharacters.length; i++) {
+                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                  }
+                                  const byteArray = new Uint8Array(byteNumbers);
+                                  const blob = new Blob([byteArray], { type: contentType });
+                                  const url = URL.createObjectURL(blob);
+                                  window.open(url, '_blank');
+                                  setTimeout(() => URL.revokeObjectURL(url), 1000);
+                                }}
+                                className="mt-2 text-blue-400 hover:text-blue-300 text-xs"
+                              >
+                                📷 View Screenshot
+                              </button>
+                            )}
                           </div>
-                          <div className="text-sm text-gray-400 space-y-1">
-                            <p>Added: {number.addedAt.toLocaleDateString()}</p>
-                            {number.reason && <p>Reason: {number.reason}</p>}
+                        ))}
+
+                        {isLoadingMoreProtectionRequests && (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="w-4 h-4 text-blue-400 animate-spin mr-2" />
+                            <span className="text-gray-400">Loading more requests...</span>
                           </div>
-                          {number.screenshot && (
-                            <button
-                              onClick={() => {
-                                const base64Data = number.screenshot?.split(',')[1];
-                                const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
-                                const byteCharacters = atob(base64Data || '');
-                                const byteNumbers = new Array(byteCharacters.length);
-                                for (let i = 0; i < byteCharacters.length; i++) {
-                                  byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                }
-                                const byteArray = new Uint8Array(byteNumbers);
-                                const blob = new Blob([byteArray], { type: contentType });
-                                const url = URL.createObjectURL(blob);
-                                window.open(url, '_blank');
-                                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                              }}
-                              className="mt-2 text-blue-400 hover:text-blue-300 text-xs"
-                            >
-                              📷 View Screenshot
-                            </button>
-                          )}
-                        </div>
-                      ))
+                        )}
+
+                        {!hasMoreProtectionRequests && protectionRequests.length > 10 && (
+                          <div className="text-center py-2">
+                            <span className="text-gray-500 text-sm">--- No more requests ---</span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -600,7 +732,18 @@ const AdminPanel: React.FC = () => {
                     />
                   </div>
 
-                  <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hidden">
+                  <div 
+                    className="space-y-4 max-h-96 overflow-y-auto scrollbar-hidden"
+                    onScroll={(e) => {
+                      const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+                      const scrollThreshold = 5;
+                      const isNearBottom = scrollTop + clientHeight >= scrollHeight - scrollThreshold;
+
+                      if (isNearBottom && hasMoreFeedbacks && !isLoadingMoreFeedbacks) {
+                        loadMoreFeedbacks();
+                      }
+                    }}
+                  >
                     {filteredFeedbacks.length === 0 ? (
                       <div className="text-center py-8">
                         <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -609,44 +752,59 @@ const AdminPanel: React.FC = () => {
                         <p className="text-gray-400">No feedback found</p>
                       </div>
                     ) : (
-                      filteredFeedbacks.map((feedback: Feedback) => (
-                        <div
-                          key={typeof feedback._id === 'string' ? feedback._id : feedback._id.$oid}
-                          className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
-                        >
-                          {/* Header with rating and category */}
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              {renderStars(feedback.rating)}
-                              <span className="text-white font-medium">({feedback.rating}/5)</span>
+                      <>
+                        {filteredFeedbacks.map((feedback: Feedback) => (
+                          <div
+                            key={typeof feedback._id === 'string' ? feedback._id : feedback._id.$oid}
+                            className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-gray-500 transition-all duration-200"
+                          >
+                            {/* Header with rating and category */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                {renderStars(feedback.rating)}
+                                <span className="text-white font-medium">({feedback.rating}/5)</span>
+                              </div>
+                              <span className={`hidden md:block  px-2 py-1 text-xs rounded-full border capitalize ${getCategoryColor(feedback.category)}`}>
+                                <Tag className="w-3 h-3 inline mr-1" />
+                                {feedback.category}
+                              </span>
                             </div>
-                            <span className={`hidden md:block  px-2 py-1 text-xs rounded-full border capitalize ${getCategoryColor(feedback.category)}`}>
-                              <Tag className="w-3 h-3 inline mr-1" />
-                              {feedback.category}
-                            </span>
-                          </div>
 
-                          {/* Message */}
-                          <div className="mb-3">
-                            <p className="text-gray-300 text-sm leading-relaxed">
-                              {feedback.message}
-                            </p>
-                          </div>
+                            {/* Message */}
+                            <div className="mb-3">
+                              <p className="text-gray-300 text-sm leading-relaxed">
+                                {feedback.message}
+                              </p>
+                            </div>
 
-                          {/* Date */}
-                          <div className="flex items-center text-xs text-gray-400">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            {new Date(feedback.createdAt).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </div>
+                            {/* Date */}
+                            <div className="flex items-center text-xs text-gray-400">
+                              <Calendar className="w-3 h-3 mr-1" />
+                              {new Date(feedback.createdAt).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </div>
 
-                        </div>
-                      ))
+                          </div>
+                        ))}
+
+                        {isLoadingMoreFeedbacks && (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="w-4 h-4 text-blue-400 animate-spin mr-2" />
+                            <span className="text-gray-400">Loading more feedback...</span>
+                          </div>
+                        )}
+
+                        {!hasMoreFeedbacks && feedbacks.length > 10 && (
+                          <div className="text-center py-2">
+                            <span className="text-gray-500 text-sm">--- No more feedback ---</span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
