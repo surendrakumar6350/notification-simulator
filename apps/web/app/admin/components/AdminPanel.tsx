@@ -385,6 +385,104 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  // Handle screenshot viewing with error handling and validation
+  const handleViewScreenshot = (screenshot: string | undefined) => {
+    // Maximum size limit for base64 data: 10MB (approximately 13.3MB in base64)
+    const MAX_BASE64_SIZE = 10 * 1024 * 1024;
+    let url: string | null = null;
+
+    try {
+      // Validate screenshot data exists
+      if (!screenshot || typeof screenshot !== 'string') {
+        addToast({
+          type: 'error',
+          message: 'Screenshot data is missing or invalid',
+        });
+        return;
+      }
+
+      // Validate base64 format
+      if (!screenshot.includes('data:') || !screenshot.includes('base64')) {
+        addToast({
+          type: 'error',
+          message: 'Invalid screenshot format',
+        });
+        return;
+      }
+
+      // Extract base64 data
+      const base64Data = screenshot.split(',')[1];
+      if (!base64Data) {
+        addToast({
+          type: 'error',
+          message: 'Failed to extract screenshot data',
+        });
+        return;
+      }
+
+      // Check size limit to prevent browser hangs
+      if (base64Data.length > MAX_BASE64_SIZE) {
+        addToast({
+          type: 'error',
+          message: 'Screenshot is too large to display (max 10MB)',
+        });
+        return;
+      }
+
+      // Extract content type
+      const contentTypeMatch = screenshot.match(/data:(.*?);base64/);
+      const contentType = contentTypeMatch?.[1] || 'image/jpeg';
+
+      // Decode base64 string
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      
+      // Create blob and URL
+      const blob = new Blob([byteArray], { type: contentType });
+      url = URL.createObjectURL(blob);
+      
+      // Open in new tab
+      const newWindow = window.open(url, '_blank');
+      if (!newWindow) {
+        addToast({
+          type: 'warning',
+          message: 'Please allow pop-ups to view the screenshot',
+        });
+      }
+    } catch (error) {
+      console.error('Error viewing screenshot:', error);
+      
+      // Provide user-friendly error messages
+      let errorMessage = 'Failed to load screenshot';
+      if (error instanceof Error) {
+        if (error.message.includes('atob')) {
+          errorMessage = 'Invalid screenshot data format';
+        } else if (error.message.includes('Blob')) {
+          errorMessage = 'Failed to process screenshot data';
+        }
+      }
+      
+      addToast({
+        type: 'error',
+        message: errorMessage,
+      });
+    } finally {
+      // Cleanup: Revoke object URL after a delay to ensure it loads in the new window
+      if (url) {
+        setTimeout(() => {
+          try {
+            URL.revokeObjectURL(url);
+          } catch (error) {
+            console.error('Error revoking object URL:', error);
+          }
+        }, 1000);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -581,20 +679,7 @@ const AdminPanel: React.FC = () => {
                             </div>
                             {number.screenshot && (
                               <button
-                                onClick={() => {
-                                  const base64Data = number.screenshot?.split(',')[1];
-                                  const contentType = number.screenshot?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
-                                  const byteCharacters = atob(base64Data || '');
-                                  const byteNumbers = new Array(byteCharacters.length);
-                                  for (let i = 0; i < byteCharacters.length; i++) {
-                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                  }
-                                  const byteArray = new Uint8Array(byteNumbers);
-                                  const blob = new Blob([byteArray], { type: contentType });
-                                  const url = URL.createObjectURL(blob);
-                                  window.open(url, '_blank');
-                                  setTimeout(() => URL.revokeObjectURL(url), 1000);
-                                }}
+                                onClick={() => handleViewScreenshot(number.screenshot)}
                                 className="mt-2 text-blue-400 hover:text-blue-300 text-xs"
                               >
                                 📷 View Screenshot
