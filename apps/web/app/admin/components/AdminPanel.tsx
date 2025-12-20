@@ -387,7 +387,7 @@ const AdminPanel: React.FC = () => {
 
   // Handle screenshot viewing with error handling and validation
   const handleViewScreenshot = (screenshot: string | undefined) => {
-    // Maximum size limit for base64 data: 10MB (approximately 13.3MB in base64)
+    // Maximum size limit for base64 data: 10MB of base64-encoded data
     const MAX_BASE64_SIZE = 10 * 1024 * 1024;
     let url: string | null = null;
 
@@ -401,8 +401,8 @@ const AdminPanel: React.FC = () => {
         return;
       }
 
-      // Validate base64 format
-      if (!screenshot.includes('data:') || !screenshot.includes('base64')) {
+      // Validate base64 format using proper regex
+      if (!/^data:[^;]+;base64,/.test(screenshot)) {
         addToast({
           type: 'error',
           message: 'Invalid screenshot format',
@@ -410,8 +410,16 @@ const AdminPanel: React.FC = () => {
         return;
       }
 
-      // Extract base64 data
-      const base64Data = screenshot.split(',')[1];
+      // Extract base64 data - validate split result
+      const parts = screenshot.split(',');
+      if (parts.length < 2) {
+        addToast({
+          type: 'error',
+          message: 'Failed to extract screenshot data',
+        });
+        return;
+      }
+      const base64Data = parts[1];
       if (!base64Data) {
         addToast({
           type: 'error',
@@ -471,7 +479,10 @@ const AdminPanel: React.FC = () => {
         message: errorMessage,
       });
     } finally {
-      // Cleanup: Revoke object URL after a delay to ensure it loads in the new window
+      // Cleanup: Revoke object URL after a delay
+      // Using 1000ms delay to ensure the image loads in the new window
+      // before the URL is revoked. This is necessary because window.open
+      // returns immediately before the content starts loading.
       if (url) {
         setTimeout(() => {
           try {
